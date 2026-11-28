@@ -43,6 +43,10 @@
   --chart-3: var(--success);
   --chart-4: var(--warning);
   --chart-5: var(--danger);
+  /* Identidad de modelos ML (validado CVD con dataviz/validate_palette.js) */
+  --model-1: #257de0;
+  --model-2: #f47230;
+  --model-3: #6a4ce2;
 
   --font-heading: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -71,6 +75,9 @@
   --glass-border: rgb(148 180 210 / 0.18);
   --glass-highlight: linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0) 42%);
   --glass-shadow: 0 8px 32px rgb(0 0 0 / 0.35);
+  --model-1: #338ced;
+  --model-2: #e76624;
+  --model-3: #9887ef;
 }
 
 /* Alto contraste: superficies sólidas, texto 7:1, bordes marcados */
