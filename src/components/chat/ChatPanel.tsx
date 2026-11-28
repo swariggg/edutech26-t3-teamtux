@@ -13,6 +13,19 @@ type Msg = { role: "user" | "assistant"; content: string };
 const MAX_TURNS = 20;
 const MAX_ASSISTANT_CHARS = 4000;
 
+/**
+ * UUID v4. `crypto.randomUUID` solo existe en contexto seguro (HTTPS o localhost); al abrir la app
+ * por IP de red local (http://192.168.x.y) no está, así que se arma con `getRandomValues`.
+ */
+function newSessionId(): string {
+  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6]! & 0x0f) | 0x40;
+  b[8] = (b[8]! & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
 const SUGGESTIONS = ["¿Qué requisitos necesito?", "¿Cuánto cuesta la pensión?", "¿Cómo consulto mi estado?", "¿Qué métodos de pago aceptan?"];
 
 export function ChatPanel({
@@ -50,7 +63,7 @@ export function ChatPanel({
   async function send(text: string) {
     const content = text.trim();
     if (!content || streaming) return;
-    sessionRef.current ??= crypto.randomUUID();
+    sessionRef.current ??= newSessionId();
     abortRef.current?.abort();
     const history: Msg[] = [...messages.filter((m) => m.content.trim() !== ""), { role: "user", content }];
     setMessages(history);
