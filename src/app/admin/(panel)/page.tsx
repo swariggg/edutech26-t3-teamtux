@@ -7,9 +7,10 @@ import { DashboardCharts } from "@/components/charts/DashboardCharts";
 import { AuditorPanel } from "@/components/admin/AuditorPanel";
 import { AuditLogTable } from "@/components/admin/AuditLogTable";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { formatMoney, formatPercent } from "@/domain/format";
+import { formatDate, formatMoney, formatPercent } from "@/domain/format";
 import { hasLLM } from "@/lib/env";
 import { institution } from "@/content/institution";
+import { isSimulatedClock, now } from "@/lib/clock";
 
 export const metadata: Metadata = { title: "Panel" };
 export const dynamic = "force-dynamic";
@@ -22,7 +23,10 @@ export default async function DashboardPage() {
     <>
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-semibold">Panel general</h1>
-        <p className="text-muted">Año lectivo {institution.academicYear}</p>
+        <p className="text-muted">
+          Año lectivo {institution.currentYear} · Admisiones {institution.academicYear}
+          {isSimulatedClock() && <> · Datos del dataset ficticio al {formatDate(now().toISOString())}</>}
+        </p>
       </div>
       <section aria-label="Indicadores" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <StatCard label="Solicitudes" value={String(t.applications)} hint={`${t.pendingReview} por revisar`} Icon={ClipboardList} />

@@ -20,11 +20,13 @@ export type Relationship = "madre" | "padre" | "tutor" | "otro";
 export type AuditEntity = "application" | "enrollment" | "installment" | "system" | "chat";
 
 export interface Guardian {
-  id: ID; fullName: string; documentId: string; email: string; phone: string;
+  /** code: REP-### del dataset; documentId: cédula (solo representantes que postulan en línea). */
+  id: ID; code?: string; fullName: string; documentId?: string; email: string; phone: string;
   relationship: Relationship; address?: string; createdAt: ISODate;
 }
 export interface Student {
-  id: ID; fullName: string; documentId: string; birthDate: ISODate; gender?: "F" | "M" | "X";
+  /** code: EST-### del dataset. Los estudiantes del dataset no tienen cédula ni fecha exacta de nacimiento. */
+  id: ID; code?: string; fullName: string; documentId?: string; birthDate?: ISODate; birthYear?: number; scholarshipPct?: number; gender?: "F" | "M" | "X";
   guardianId: ID; previousSchool?: string; specialNeeds?: string; createdAt: ISODate;
 }
 export interface ApplicationDocument { kind: DocumentKind; received: boolean; note?: string }

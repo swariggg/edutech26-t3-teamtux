@@ -1,4 +1,5 @@
 import { ArrowRight, Bot, ClipboardCheck, CreditCard, FileText, GraduationCap, Search, Sparkles, Wallet } from "lucide-react";
+import { OpenAdvisorButton } from "@/components/chat/OpenAdvisorButton";
 import { ButtonLink } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { institution } from "@/content/institution";
@@ -23,7 +24,7 @@ export default function HomePage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <ButtonLink href="/admision" size="lg">Solicitar admisión <ArrowRight aria-hidden className="size-5" /></ButtonLink>
-            <ButtonLink href="/asesor" size="lg" variant="secondary"><Bot aria-hidden className="size-5" /> Hablar con el asesor IA</ButtonLink>
+            <OpenAdvisorButton size="lg" variant="secondary"><Bot aria-hidden className="size-5" /> Hablar con el asesor IA</OpenAdvisorButton>
           </div>
         </div>
         <GlassCard className="flex flex-col gap-4 p-6 sm:p-8">
@@ -38,7 +39,7 @@ export default function HomePage() {
           <div className="rounded-lg bg-primary/10 p-4 text-sm">
             Necesitas la cédula del estudiante y del representante, la partida de nacimiento, el certificado de notas y una foto tamaño carné. Puedes empezar en <strong>/admision</strong>.
           </div>
-          <ButtonLink href="/asesor" variant="ghost" className="self-start text-primary">Probar el asesor <ArrowRight aria-hidden className="size-4" /></ButtonLink>
+          <OpenAdvisorButton variant="ghost" className="self-start text-primary">Probar el asesor <ArrowRight aria-hidden className="size-4" /></OpenAdvisorButton>
         </GlassCard>
       </section>
 

@@ -49,7 +49,10 @@ export function runRules(s: AuditSnapshot, scope: "todo" | "solicitudes" | "pago
       }
     }
     const byDoc = new Map<string, string[]>();
-    for (const a of s.applications) byDoc.set(a.student.documentId, [...(byDoc.get(a.student.documentId) ?? []), a.student.fullName]);
+    for (const a of s.applications) {
+      const doc = a.student.documentId;
+      if (doc) byDoc.set(doc, [...(byDoc.get(doc) ?? []), a.student.fullName]);
+    }
     let dupN = 0;
     for (const [doc, names] of byDoc) {
       if (new Set(names).size > 1) {

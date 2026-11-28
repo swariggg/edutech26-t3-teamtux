@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { StatusChangeInput } from "@/domain/schemas";
 import { getRepository } from "@/data";
-import { NotFoundError } from "@/data/repository";
+import { isNotFoundError } from "@/data/repository";
 import type { ApplicationStatus } from "@/domain/types";
 import { logAudit } from "@/lib/audit";
 import { emitEvent } from "@/lib/n8n";
@@ -25,7 +25,7 @@ export async function PATCH(req: Request, ctx: RouteContext<"/api/admin/applicat
     void emitEvent("application.status_changed", { applicationId: id, trackingCode: app.trackingCode, from: before.status, to: status });
     return NextResponse.json({ ok: true, status: app.status });
   } catch (error) {
-    if (error instanceof NotFoundError) return jsonError(error.message, 404);
+    if (isNotFoundError(error)) return jsonError(error.message, 404);
     console.error("[admin/status]", error);
     return jsonError("No se pudo actualizar", 500);
   }

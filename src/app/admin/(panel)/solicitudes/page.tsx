@@ -9,6 +9,7 @@ import { APPLICATION_STATUSES, applicationStatusMeta } from "@/domain/labels";
 import { formatDate, relativeDays } from "@/domain/format";
 import { gradeLabel, institution } from "@/content/institution";
 import type { ApplicationStatus, Grade } from "@/domain/types";
+import { now } from "@/lib/clock";
 
 export const metadata: Metadata = { title: "Solicitudes" };
 export const dynamic = "force-dynamic";
@@ -45,7 +46,7 @@ export default async function SolicitudesPage({ searchParams }: { searchParams: 
             { key: "grade", header: "Grado", cell: (r) => gradeLabel(r.gradeApplied) },
             { key: "status", header: "Estado", cell: (r) => <Badge tone={applicationStatusMeta[r.status].tone}>{applicationStatusMeta[r.status].label}</Badge> },
             { key: "sub", header: "Enviada", cell: (r) => formatDate(r.submittedAt) },
-            { key: "upd", header: "Último movimiento", cell: (r) => <span className="text-muted">{relativeDays(r.updatedAt)}</span> },
+            { key: "upd", header: "Último movimiento", cell: (r) => <span className="text-muted">{relativeDays(r.updatedAt, now())}</span> },
           ]}
         />
       </GlassCard>

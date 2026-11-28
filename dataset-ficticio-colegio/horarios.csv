@@ -1,0 +1,421 @@
+curso,paralelo,dia,hora_inicio,hora_fin,materia,docente_codigo
+8vo EGB,A,lunes,07:15,07:55,Matemática,DOC-01
+8vo EGB,A,lunes,08:00,08:40,Lengua y Literatura,DOC-03
+8vo EGB,A,lunes,08:45,09:25,Ciencias Naturales,DOC-05
+8vo EGB,A,lunes,09:30,10:10,Estudios Sociales,DOC-07
+8vo EGB,A,lunes,10:30,11:10,Inglés,DOC-09
+8vo EGB,A,lunes,11:15,11:55,Educación Física,DOC-11
+8vo EGB,A,lunes,12:00,12:40,Educación Cultural y Artística,DOC-13
+8vo EGB,A,martes,07:15,07:55,Lengua y Literatura,DOC-03
+8vo EGB,A,martes,08:00,08:40,Ciencias Naturales,DOC-05
+8vo EGB,A,martes,08:45,09:25,Estudios Sociales,DOC-07
+8vo EGB,A,martes,09:30,10:10,Inglés,DOC-09
+8vo EGB,A,martes,10:30,11:10,Educación Física,DOC-11
+8vo EGB,A,martes,11:15,11:55,Educación Cultural y Artística,DOC-13
+8vo EGB,A,martes,12:00,12:40,Matemática,DOC-01
+8vo EGB,A,miercoles,07:15,07:55,Ciencias Naturales,DOC-05
+8vo EGB,A,miercoles,08:00,08:40,Estudios Sociales,DOC-07
+8vo EGB,A,miercoles,08:45,09:25,Inglés,DOC-09
+8vo EGB,A,miercoles,09:30,10:10,Educación Física,DOC-11
+8vo EGB,A,miercoles,10:30,11:10,Educación Cultural y Artística,DOC-13
+8vo EGB,A,miercoles,11:15,11:55,Matemática,DOC-01
+8vo EGB,A,miercoles,12:00,12:40,Lengua y Literatura,DOC-03
+8vo EGB,A,jueves,07:15,07:55,Estudios Sociales,DOC-07
+8vo EGB,A,jueves,08:00,08:40,Inglés,DOC-09
+8vo EGB,A,jueves,08:45,09:25,Educación Física,DOC-11
+8vo EGB,A,jueves,09:30,10:10,Educación Cultural y Artística,DOC-13
+8vo EGB,A,jueves,10:30,11:10,Matemática,DOC-01
+8vo EGB,A,jueves,11:15,11:55,Lengua y Literatura,DOC-03
+8vo EGB,A,jueves,12:00,12:40,Ciencias Naturales,DOC-05
+8vo EGB,A,viernes,07:15,07:55,Inglés,DOC-09
+8vo EGB,A,viernes,08:00,08:40,Educación Física,DOC-11
+8vo EGB,A,viernes,08:45,09:25,Educación Cultural y Artística,DOC-13
+8vo EGB,A,viernes,09:30,10:10,Matemática,DOC-01
+8vo EGB,A,viernes,10:30,11:10,Lengua y Literatura,DOC-03
+8vo EGB,A,viernes,11:15,11:55,Ciencias Naturales,DOC-05
+8vo EGB,A,viernes,12:00,12:40,Estudios Sociales,DOC-07
+8vo EGB,B,lunes,07:15,07:55,Matemática,DOC-02
+8vo EGB,B,lunes,08:00,08:40,Lengua y Literatura,DOC-04
+8vo EGB,B,lunes,08:45,09:25,Ciencias Naturales,DOC-06
+8vo EGB,B,lunes,09:30,10:10,Estudios Sociales,DOC-08
+8vo EGB,B,lunes,10:30,11:10,Inglés,DOC-10
+8vo EGB,B,lunes,11:15,11:55,Educación Física,DOC-12
+8vo EGB,B,lunes,12:00,12:40,Educación Cultural y Artística,DOC-14
+8vo EGB,B,martes,07:15,07:55,Lengua y Literatura,DOC-04
+8vo EGB,B,martes,08:00,08:40,Ciencias Naturales,DOC-06
+8vo EGB,B,martes,08:45,09:25,Estudios Sociales,DOC-08
+8vo EGB,B,martes,09:30,10:10,Inglés,DOC-10
+8vo EGB,B,martes,10:30,11:10,Educación Física,DOC-12
+8vo EGB,B,martes,11:15,11:55,Educación Cultural y Artística,DOC-14
+8vo EGB,B,martes,12:00,12:40,Matemática,DOC-02
+8vo EGB,B,miercoles,07:15,07:55,Ciencias Naturales,DOC-06
+8vo EGB,B,miercoles,08:00,08:40,Estudios Sociales,DOC-08
+8vo EGB,B,miercoles,08:45,09:25,Inglés,DOC-10
+8vo EGB,B,miercoles,09:30,10:10,Educación Física,DOC-12
+8vo EGB,B,miercoles,10:30,11:10,Educación Cultural y Artística,DOC-14
+8vo EGB,B,miercoles,11:15,11:55,Matemática,DOC-02
+8vo EGB,B,miercoles,12:00,12:40,Lengua y Literatura,DOC-04
+8vo EGB,B,jueves,07:15,07:55,Estudios Sociales,DOC-08
+8vo EGB,B,jueves,08:00,08:40,Inglés,DOC-10
+8vo EGB,B,jueves,08:45,09:25,Educación Física,DOC-12
+8vo EGB,B,jueves,09:30,10:10,Educación Cultural y Artística,DOC-14
+8vo EGB,B,jueves,10:30,11:10,Matemática,DOC-02
+8vo EGB,B,jueves,11:15,11:55,Lengua y Literatura,DOC-04
+8vo EGB,B,jueves,12:00,12:40,Ciencias Naturales,DOC-06
+8vo EGB,B,viernes,07:15,07:55,Inglés,DOC-10
+8vo EGB,B,viernes,08:00,08:40,Educación Física,DOC-12
+8vo EGB,B,viernes,08:45,09:25,Educación Cultural y Artística,DOC-14
+8vo EGB,B,viernes,09:30,10:10,Matemática,DOC-02
+8vo EGB,B,viernes,10:30,11:10,Lengua y Literatura,DOC-04
+8vo EGB,B,viernes,11:15,11:55,Ciencias Naturales,DOC-06
+8vo EGB,B,viernes,12:00,12:40,Estudios Sociales,DOC-08
+9no EGB,A,lunes,07:15,07:55,Lengua y Literatura,DOC-03
+9no EGB,A,lunes,08:00,08:40,Ciencias Naturales,DOC-05
+9no EGB,A,lunes,08:45,09:25,Estudios Sociales,DOC-07
+9no EGB,A,lunes,09:30,10:10,Inglés,DOC-09
+9no EGB,A,lunes,10:30,11:10,Educación Física,DOC-11
+9no EGB,A,lunes,11:15,11:55,Educación Cultural y Artística,DOC-13
+9no EGB,A,lunes,12:00,12:40,Matemática,DOC-01
+9no EGB,A,martes,07:15,07:55,Ciencias Naturales,DOC-05
+9no EGB,A,martes,08:00,08:40,Estudios Sociales,DOC-07
+9no EGB,A,martes,08:45,09:25,Inglés,DOC-09
+9no EGB,A,martes,09:30,10:10,Educación Física,DOC-11
+9no EGB,A,martes,10:30,11:10,Educación Cultural y Artística,DOC-13
+9no EGB,A,martes,11:15,11:55,Matemática,DOC-01
+9no EGB,A,martes,12:00,12:40,Lengua y Literatura,DOC-03
+9no EGB,A,miercoles,07:15,07:55,Estudios Sociales,DOC-07
+9no EGB,A,miercoles,08:00,08:40,Inglés,DOC-09
+9no EGB,A,miercoles,08:45,09:25,Educación Física,DOC-11
+9no EGB,A,miercoles,09:30,10:10,Educación Cultural y Artística,DOC-13
+9no EGB,A,miercoles,10:30,11:10,Matemática,DOC-01
+9no EGB,A,miercoles,11:15,11:55,Lengua y Literatura,DOC-03
+9no EGB,A,miercoles,12:00,12:40,Ciencias Naturales,DOC-05
+9no EGB,A,jueves,07:15,07:55,Inglés,DOC-09
+9no EGB,A,jueves,08:00,08:40,Educación Física,DOC-11
+9no EGB,A,jueves,08:45,09:25,Educación Cultural y Artística,DOC-13
+9no EGB,A,jueves,09:30,10:10,Matemática,DOC-01
+9no EGB,A,jueves,10:30,11:10,Lengua y Literatura,DOC-03
+9no EGB,A,jueves,11:15,11:55,Ciencias Naturales,DOC-05
+9no EGB,A,jueves,12:00,12:40,Estudios Sociales,DOC-07
+9no EGB,A,viernes,07:15,07:55,Educación Física,DOC-11
+9no EGB,A,viernes,08:00,08:40,Educación Cultural y Artística,DOC-13
+9no EGB,A,viernes,08:45,09:25,Matemática,DOC-01
+9no EGB,A,viernes,09:30,10:10,Lengua y Literatura,DOC-03
+9no EGB,A,viernes,10:30,11:10,Ciencias Naturales,DOC-05
+9no EGB,A,viernes,11:15,11:55,Estudios Sociales,DOC-07
+9no EGB,A,viernes,12:00,12:40,Inglés,DOC-09
+9no EGB,B,lunes,07:15,07:55,Lengua y Literatura,DOC-04
+9no EGB,B,lunes,08:00,08:40,Ciencias Naturales,DOC-06
+9no EGB,B,lunes,08:45,09:25,Estudios Sociales,DOC-08
+9no EGB,B,lunes,09:30,10:10,Inglés,DOC-10
+9no EGB,B,lunes,10:30,11:10,Educación Física,DOC-12
+9no EGB,B,lunes,11:15,11:55,Educación Cultural y Artística,DOC-14
+9no EGB,B,lunes,12:00,12:40,Matemática,DOC-02
+9no EGB,B,martes,07:15,07:55,Ciencias Naturales,DOC-06
+9no EGB,B,martes,08:00,08:40,Estudios Sociales,DOC-08
+9no EGB,B,martes,08:45,09:25,Inglés,DOC-10
+9no EGB,B,martes,09:30,10:10,Educación Física,DOC-12
+9no EGB,B,martes,10:30,11:10,Educación Cultural y Artística,DOC-14
+9no EGB,B,martes,11:15,11:55,Matemática,DOC-02
+9no EGB,B,martes,12:00,12:40,Lengua y Literatura,DOC-04
+9no EGB,B,miercoles,07:15,07:55,Estudios Sociales,DOC-08
+9no EGB,B,miercoles,08:00,08:40,Inglés,DOC-10
+9no EGB,B,miercoles,08:45,09:25,Educación Física,DOC-12
+9no EGB,B,miercoles,09:30,10:10,Educación Cultural y Artística,DOC-14
+9no EGB,B,miercoles,10:30,11:10,Matemática,DOC-02
+9no EGB,B,miercoles,11:15,11:55,Lengua y Literatura,DOC-04
+9no EGB,B,miercoles,12:00,12:40,Ciencias Naturales,DOC-06
+9no EGB,B,jueves,07:15,07:55,Inglés,DOC-10
+9no EGB,B,jueves,08:00,08:40,Educación Física,DOC-12
+9no EGB,B,jueves,08:45,09:25,Educación Cultural y Artística,DOC-14
+9no EGB,B,jueves,09:30,10:10,Matemática,DOC-02
+9no EGB,B,jueves,10:30,11:10,Lengua y Literatura,DOC-04
+9no EGB,B,jueves,11:15,11:55,Ciencias Naturales,DOC-06
+9no EGB,B,jueves,12:00,12:40,Estudios Sociales,DOC-08
+9no EGB,B,viernes,07:15,07:55,Educación Física,DOC-12
+9no EGB,B,viernes,08:00,08:40,Educación Cultural y Artística,DOC-14
+9no EGB,B,viernes,08:45,09:25,Matemática,DOC-02
+9no EGB,B,viernes,09:30,10:10,Lengua y Literatura,DOC-04
+9no EGB,B,viernes,10:30,11:10,Ciencias Naturales,DOC-06
+9no EGB,B,viernes,11:15,11:55,Estudios Sociales,DOC-08
+9no EGB,B,viernes,12:00,12:40,Inglés,DOC-10
+10mo EGB,A,lunes,07:15,07:55,Ciencias Naturales,DOC-05
+10mo EGB,A,lunes,08:00,08:40,Estudios Sociales,DOC-07
+10mo EGB,A,lunes,08:45,09:25,Inglés,DOC-09
+10mo EGB,A,lunes,09:30,10:10,Educación Física,DOC-11
+10mo EGB,A,lunes,10:30,11:10,Educación Cultural y Artística,DOC-13
+10mo EGB,A,lunes,11:15,11:55,Matemática,DOC-01
+10mo EGB,A,lunes,12:00,12:40,Lengua y Literatura,DOC-03
+10mo EGB,A,martes,07:15,07:55,Estudios Sociales,DOC-07
+10mo EGB,A,martes,08:00,08:40,Inglés,DOC-09
+10mo EGB,A,martes,08:45,09:25,Educación Física,DOC-11
+10mo EGB,A,martes,09:30,10:10,Educación Cultural y Artística,DOC-13
+10mo EGB,A,martes,10:30,11:10,Matemática,DOC-01
+10mo EGB,A,martes,11:15,11:55,Lengua y Literatura,DOC-03
+10mo EGB,A,martes,12:00,12:40,Ciencias Naturales,DOC-05
+10mo EGB,A,miercoles,07:15,07:55,Inglés,DOC-09
+10mo EGB,A,miercoles,08:00,08:40,Educación Física,DOC-11
+10mo EGB,A,miercoles,08:45,09:25,Educación Cultural y Artística,DOC-13
+10mo EGB,A,miercoles,09:30,10:10,Matemática,DOC-01
+10mo EGB,A,miercoles,10:30,11:10,Lengua y Literatura,DOC-03
+10mo EGB,A,miercoles,11:15,11:55,Ciencias Naturales,DOC-05
+10mo EGB,A,miercoles,12:00,12:40,Estudios Sociales,DOC-07
+10mo EGB,A,jueves,07:15,07:55,Educación Física,DOC-11
+10mo EGB,A,jueves,08:00,08:40,Educación Cultural y Artística,DOC-13
+10mo EGB,A,jueves,08:45,09:25,Matemática,DOC-01
+10mo EGB,A,jueves,09:30,10:10,Lengua y Literatura,DOC-03
+10mo EGB,A,jueves,10:30,11:10,Ciencias Naturales,DOC-05
+10mo EGB,A,jueves,11:15,11:55,Estudios Sociales,DOC-07
+10mo EGB,A,jueves,12:00,12:40,Inglés,DOC-09
+10mo EGB,A,viernes,07:15,07:55,Educación Cultural y Artística,DOC-13
+10mo EGB,A,viernes,08:00,08:40,Matemática,DOC-01
+10mo EGB,A,viernes,08:45,09:25,Lengua y Literatura,DOC-03
+10mo EGB,A,viernes,09:30,10:10,Ciencias Naturales,DOC-05
+10mo EGB,A,viernes,10:30,11:10,Estudios Sociales,DOC-07
+10mo EGB,A,viernes,11:15,11:55,Inglés,DOC-09
+10mo EGB,A,viernes,12:00,12:40,Educación Física,DOC-11
+10mo EGB,B,lunes,07:15,07:55,Ciencias Naturales,DOC-06
+10mo EGB,B,lunes,08:00,08:40,Estudios Sociales,DOC-08
+10mo EGB,B,lunes,08:45,09:25,Inglés,DOC-10
+10mo EGB,B,lunes,09:30,10:10,Educación Física,DOC-12
+10mo EGB,B,lunes,10:30,11:10,Educación Cultural y Artística,DOC-14
+10mo EGB,B,lunes,11:15,11:55,Matemática,DOC-02
+10mo EGB,B,lunes,12:00,12:40,Lengua y Literatura,DOC-04
+10mo EGB,B,martes,07:15,07:55,Estudios Sociales,DOC-08
+10mo EGB,B,martes,08:00,08:40,Inglés,DOC-10
+10mo EGB,B,martes,08:45,09:25,Educación Física,DOC-12
+10mo EGB,B,martes,09:30,10:10,Educación Cultural y Artística,DOC-14
+10mo EGB,B,martes,10:30,11:10,Matemática,DOC-02
+10mo EGB,B,martes,11:15,11:55,Lengua y Literatura,DOC-04
+10mo EGB,B,martes,12:00,12:40,Ciencias Naturales,DOC-06
+10mo EGB,B,miercoles,07:15,07:55,Inglés,DOC-10
+10mo EGB,B,miercoles,08:00,08:40,Educación Física,DOC-12
+10mo EGB,B,miercoles,08:45,09:25,Educación Cultural y Artística,DOC-14
+10mo EGB,B,miercoles,09:30,10:10,Matemática,DOC-02
+10mo EGB,B,miercoles,10:30,11:10,Lengua y Literatura,DOC-04
+10mo EGB,B,miercoles,11:15,11:55,Ciencias Naturales,DOC-06
+10mo EGB,B,miercoles,12:00,12:40,Estudios Sociales,DOC-08
+10mo EGB,B,jueves,07:15,07:55,Educación Física,DOC-12
+10mo EGB,B,jueves,08:00,08:40,Educación Cultural y Artística,DOC-14
+10mo EGB,B,jueves,08:45,09:25,Matemática,DOC-02
+10mo EGB,B,jueves,09:30,10:10,Lengua y Literatura,DOC-04
+10mo EGB,B,jueves,10:30,11:10,Ciencias Naturales,DOC-06
+10mo EGB,B,jueves,11:15,11:55,Estudios Sociales,DOC-08
+10mo EGB,B,jueves,12:00,12:40,Inglés,DOC-10
+10mo EGB,B,viernes,07:15,07:55,Educación Cultural y Artística,DOC-14
+10mo EGB,B,viernes,08:00,08:40,Matemática,DOC-02
+10mo EGB,B,viernes,08:45,09:25,Lengua y Literatura,DOC-04
+10mo EGB,B,viernes,09:30,10:10,Ciencias Naturales,DOC-06
+10mo EGB,B,viernes,10:30,11:10,Estudios Sociales,DOC-08
+10mo EGB,B,viernes,11:15,11:55,Inglés,DOC-10
+10mo EGB,B,viernes,12:00,12:40,Educación Física,DOC-12
+1ro BGU,A,lunes,07:15,07:55,Estudios Sociales,DOC-07
+1ro BGU,A,lunes,08:00,08:40,Inglés,DOC-09
+1ro BGU,A,lunes,08:45,09:25,Educación Física,DOC-11
+1ro BGU,A,lunes,09:30,10:10,Educación Cultural y Artística,DOC-13
+1ro BGU,A,lunes,10:30,11:10,Matemática,DOC-01
+1ro BGU,A,lunes,11:15,11:55,Lengua y Literatura,DOC-03
+1ro BGU,A,lunes,12:00,12:40,Ciencias Naturales,DOC-05
+1ro BGU,A,martes,07:15,07:55,Inglés,DOC-09
+1ro BGU,A,martes,08:00,08:40,Educación Física,DOC-11
+1ro BGU,A,martes,08:45,09:25,Educación Cultural y Artística,DOC-13
+1ro BGU,A,martes,09:30,10:10,Matemática,DOC-01
+1ro BGU,A,martes,10:30,11:10,Lengua y Literatura,DOC-03
+1ro BGU,A,martes,11:15,11:55,Ciencias Naturales,DOC-05
+1ro BGU,A,martes,12:00,12:40,Estudios Sociales,DOC-07
+1ro BGU,A,miercoles,07:15,07:55,Educación Física,DOC-11
+1ro BGU,A,miercoles,08:00,08:40,Educación Cultural y Artística,DOC-13
+1ro BGU,A,miercoles,08:45,09:25,Matemática,DOC-01
+1ro BGU,A,miercoles,09:30,10:10,Lengua y Literatura,DOC-03
+1ro BGU,A,miercoles,10:30,11:10,Ciencias Naturales,DOC-05
+1ro BGU,A,miercoles,11:15,11:55,Estudios Sociales,DOC-07
+1ro BGU,A,miercoles,12:00,12:40,Inglés,DOC-09
+1ro BGU,A,jueves,07:15,07:55,Educación Cultural y Artística,DOC-13
+1ro BGU,A,jueves,08:00,08:40,Matemática,DOC-01
+1ro BGU,A,jueves,08:45,09:25,Lengua y Literatura,DOC-03
+1ro BGU,A,jueves,09:30,10:10,Ciencias Naturales,DOC-05
+1ro BGU,A,jueves,10:30,11:10,Estudios Sociales,DOC-07
+1ro BGU,A,jueves,11:15,11:55,Inglés,DOC-09
+1ro BGU,A,jueves,12:00,12:40,Educación Física,DOC-11
+1ro BGU,A,viernes,07:15,07:55,Matemática,DOC-01
+1ro BGU,A,viernes,08:00,08:40,Lengua y Literatura,DOC-03
+1ro BGU,A,viernes,08:45,09:25,Ciencias Naturales,DOC-05
+1ro BGU,A,viernes,09:30,10:10,Estudios Sociales,DOC-07
+1ro BGU,A,viernes,10:30,11:10,Inglés,DOC-09
+1ro BGU,A,viernes,11:15,11:55,Educación Física,DOC-11
+1ro BGU,A,viernes,12:00,12:40,Educación Cultural y Artística,DOC-13
+1ro BGU,B,lunes,07:15,07:55,Estudios Sociales,DOC-08
+1ro BGU,B,lunes,08:00,08:40,Inglés,DOC-10
+1ro BGU,B,lunes,08:45,09:25,Educación Física,DOC-12
+1ro BGU,B,lunes,09:30,10:10,Educación Cultural y Artística,DOC-14
+1ro BGU,B,lunes,10:30,11:10,Matemática,DOC-02
+1ro BGU,B,lunes,11:15,11:55,Lengua y Literatura,DOC-04
+1ro BGU,B,lunes,12:00,12:40,Ciencias Naturales,DOC-06
+1ro BGU,B,martes,07:15,07:55,Inglés,DOC-10
+1ro BGU,B,martes,08:00,08:40,Educación Física,DOC-12
+1ro BGU,B,martes,08:45,09:25,Educación Cultural y Artística,DOC-14
+1ro BGU,B,martes,09:30,10:10,Matemática,DOC-02
+1ro BGU,B,martes,10:30,11:10,Lengua y Literatura,DOC-04
+1ro BGU,B,martes,11:15,11:55,Ciencias Naturales,DOC-06
+1ro BGU,B,martes,12:00,12:40,Estudios Sociales,DOC-08
+1ro BGU,B,miercoles,07:15,07:55,Educación Física,DOC-12
+1ro BGU,B,miercoles,08:00,08:40,Educación Cultural y Artística,DOC-14
+1ro BGU,B,miercoles,08:45,09:25,Matemática,DOC-02
+1ro BGU,B,miercoles,09:30,10:10,Lengua y Literatura,DOC-04
+1ro BGU,B,miercoles,10:30,11:10,Ciencias Naturales,DOC-06
+1ro BGU,B,miercoles,11:15,11:55,Estudios Sociales,DOC-08
+1ro BGU,B,miercoles,12:00,12:40,Inglés,DOC-10
+1ro BGU,B,jueves,07:15,07:55,Educación Cultural y Artística,DOC-14
+1ro BGU,B,jueves,08:00,08:40,Matemática,DOC-02
+1ro BGU,B,jueves,08:45,09:25,Lengua y Literatura,DOC-04
+1ro BGU,B,jueves,09:30,10:10,Ciencias Naturales,DOC-06
+1ro BGU,B,jueves,10:30,11:10,Estudios Sociales,DOC-08
+1ro BGU,B,jueves,11:15,11:55,Inglés,DOC-10
+1ro BGU,B,jueves,12:00,12:40,Educación Física,DOC-12
+1ro BGU,B,viernes,07:15,07:55,Matemática,DOC-02
+1ro BGU,B,viernes,08:00,08:40,Lengua y Literatura,DOC-04
+1ro BGU,B,viernes,08:45,09:25,Ciencias Naturales,DOC-06
+1ro BGU,B,viernes,09:30,10:10,Estudios Sociales,DOC-08
+1ro BGU,B,viernes,10:30,11:10,Inglés,DOC-10
+1ro BGU,B,viernes,11:15,11:55,Educación Física,DOC-12
+1ro BGU,B,viernes,12:00,12:40,Educación Cultural y Artística,DOC-14
+2do BGU,A,lunes,07:15,07:55,Inglés,DOC-09
+2do BGU,A,lunes,08:00,08:40,Educación Física,DOC-11
+2do BGU,A,lunes,08:45,09:25,Educación Cultural y Artística,DOC-13
+2do BGU,A,lunes,09:30,10:10,Matemática,DOC-01
+2do BGU,A,lunes,10:30,11:10,Lengua y Literatura,DOC-03
+2do BGU,A,lunes,11:15,11:55,Ciencias Naturales,DOC-05
+2do BGU,A,lunes,12:00,12:40,Estudios Sociales,DOC-07
+2do BGU,A,martes,07:15,07:55,Educación Física,DOC-11
+2do BGU,A,martes,08:00,08:40,Educación Cultural y Artística,DOC-13
+2do BGU,A,martes,08:45,09:25,Matemática,DOC-01
+2do BGU,A,martes,09:30,10:10,Lengua y Literatura,DOC-03
+2do BGU,A,martes,10:30,11:10,Ciencias Naturales,DOC-05
+2do BGU,A,martes,11:15,11:55,Estudios Sociales,DOC-07
+2do BGU,A,martes,12:00,12:40,Inglés,DOC-09
+2do BGU,A,miercoles,07:15,07:55,Educación Cultural y Artística,DOC-13
+2do BGU,A,miercoles,08:00,08:40,Matemática,DOC-01
+2do BGU,A,miercoles,08:45,09:25,Lengua y Literatura,DOC-03
+2do BGU,A,miercoles,09:30,10:10,Ciencias Naturales,DOC-05
+2do BGU,A,miercoles,10:30,11:10,Estudios Sociales,DOC-07
+2do BGU,A,miercoles,11:15,11:55,Inglés,DOC-09
+2do BGU,A,miercoles,12:00,12:40,Educación Física,DOC-11
+2do BGU,A,jueves,07:15,07:55,Matemática,DOC-01
+2do BGU,A,jueves,08:00,08:40,Lengua y Literatura,DOC-03
+2do BGU,A,jueves,08:45,09:25,Ciencias Naturales,DOC-05
+2do BGU,A,jueves,09:30,10:10,Estudios Sociales,DOC-07
+2do BGU,A,jueves,10:30,11:10,Inglés,DOC-09
+2do BGU,A,jueves,11:15,11:55,Educación Física,DOC-11
+2do BGU,A,jueves,12:00,12:40,Educación Cultural y Artística,DOC-13
+2do BGU,A,viernes,07:15,07:55,Lengua y Literatura,DOC-03
+2do BGU,A,viernes,08:00,08:40,Ciencias Naturales,DOC-05
+2do BGU,A,viernes,08:45,09:25,Estudios Sociales,DOC-07
+2do BGU,A,viernes,09:30,10:10,Inglés,DOC-09
+2do BGU,A,viernes,10:30,11:10,Educación Física,DOC-11
+2do BGU,A,viernes,11:15,11:55,Educación Cultural y Artística,DOC-13
+2do BGU,A,viernes,12:00,12:40,Matemática,DOC-01
+2do BGU,B,lunes,07:15,07:55,Inglés,DOC-10
+2do BGU,B,lunes,08:00,08:40,Educación Física,DOC-12
+2do BGU,B,lunes,08:45,09:25,Educación Cultural y Artística,DOC-14
+2do BGU,B,lunes,09:30,10:10,Matemática,DOC-02
+2do BGU,B,lunes,10:30,11:10,Lengua y Literatura,DOC-04
+2do BGU,B,lunes,11:15,11:55,Ciencias Naturales,DOC-06
+2do BGU,B,lunes,12:00,12:40,Estudios Sociales,DOC-08
+2do BGU,B,martes,07:15,07:55,Educación Física,DOC-12
+2do BGU,B,martes,08:00,08:40,Educación Cultural y Artística,DOC-14
+2do BGU,B,martes,08:45,09:25,Matemática,DOC-02
+2do BGU,B,martes,09:30,10:10,Lengua y Literatura,DOC-04
+2do BGU,B,martes,10:30,11:10,Ciencias Naturales,DOC-06
+2do BGU,B,martes,11:15,11:55,Estudios Sociales,DOC-08
+2do BGU,B,martes,12:00,12:40,Inglés,DOC-10
+2do BGU,B,miercoles,07:15,07:55,Educación Cultural y Artística,DOC-14
+2do BGU,B,miercoles,08:00,08:40,Matemática,DOC-02
+2do BGU,B,miercoles,08:45,09:25,Lengua y Literatura,DOC-04
+2do BGU,B,miercoles,09:30,10:10,Ciencias Naturales,DOC-06
+2do BGU,B,miercoles,10:30,11:10,Estudios Sociales,DOC-08
+2do BGU,B,miercoles,11:15,11:55,Inglés,DOC-10
+2do BGU,B,miercoles,12:00,12:40,Educación Física,DOC-12
+2do BGU,B,jueves,07:15,07:55,Matemática,DOC-02
+2do BGU,B,jueves,08:00,08:40,Lengua y Literatura,DOC-04
+2do BGU,B,jueves,08:45,09:25,Ciencias Naturales,DOC-06
+2do BGU,B,jueves,09:30,10:10,Estudios Sociales,DOC-08
+2do BGU,B,jueves,10:30,11:10,Inglés,DOC-10
+2do BGU,B,jueves,11:15,11:55,Educación Física,DOC-12
+2do BGU,B,jueves,12:00,12:40,Educación Cultural y Artística,DOC-14
+2do BGU,B,viernes,07:15,07:55,Lengua y Literatura,DOC-04
+2do BGU,B,viernes,08:00,08:40,Ciencias Naturales,DOC-06
+2do BGU,B,viernes,08:45,09:25,Estudios Sociales,DOC-08
+2do BGU,B,viernes,09:30,10:10,Inglés,DOC-10
+2do BGU,B,viernes,10:30,11:10,Educación Física,DOC-12
+2do BGU,B,viernes,11:15,11:55,Educación Cultural y Artística,DOC-14
+2do BGU,B,viernes,12:00,12:40,Matemática,DOC-02
+3ro BGU,A,lunes,07:15,07:55,Educación Física,DOC-11
+3ro BGU,A,lunes,08:00,08:40,Educación Cultural y Artística,DOC-13
+3ro BGU,A,lunes,08:45,09:25,Matemática,DOC-01
+3ro BGU,A,lunes,09:30,10:10,Lengua y Literatura,DOC-03
+3ro BGU,A,lunes,10:30,11:10,Ciencias Naturales,DOC-05
+3ro BGU,A,lunes,11:15,11:55,Estudios Sociales,DOC-07
+3ro BGU,A,lunes,12:00,12:40,Inglés,DOC-09
+3ro BGU,A,martes,07:15,07:55,Educación Cultural y Artística,DOC-13
+3ro BGU,A,martes,08:00,08:40,Matemática,DOC-01
+3ro BGU,A,martes,08:45,09:25,Lengua y Literatura,DOC-03
+3ro BGU,A,martes,09:30,10:10,Ciencias Naturales,DOC-05
+3ro BGU,A,martes,10:30,11:10,Estudios Sociales,DOC-07
+3ro BGU,A,martes,11:15,11:55,Inglés,DOC-09
+3ro BGU,A,martes,12:00,12:40,Educación Física,DOC-11
+3ro BGU,A,miercoles,07:15,07:55,Matemática,DOC-01
+3ro BGU,A,miercoles,08:00,08:40,Lengua y Literatura,DOC-03
+3ro BGU,A,miercoles,08:45,09:25,Ciencias Naturales,DOC-05
+3ro BGU,A,miercoles,09:30,10:10,Estudios Sociales,DOC-07
+3ro BGU,A,miercoles,10:30,11:10,Inglés,DOC-09
+3ro BGU,A,miercoles,11:15,11:55,Educación Física,DOC-11
+3ro BGU,A,miercoles,12:00,12:40,Educación Cultural y Artística,DOC-13
+3ro BGU,A,jueves,07:15,07:55,Lengua y Literatura,DOC-03
+3ro BGU,A,jueves,08:00,08:40,Ciencias Naturales,DOC-05
+3ro BGU,A,jueves,08:45,09:25,Estudios Sociales,DOC-07
+3ro BGU,A,jueves,09:30,10:10,Inglés,DOC-09
+3ro BGU,A,jueves,10:30,11:10,Educación Física,DOC-11
+3ro BGU,A,jueves,11:15,11:55,Educación Cultural y Artística,DOC-13
+3ro BGU,A,jueves,12:00,12:40,Matemática,DOC-01
+3ro BGU,A,viernes,07:15,07:55,Ciencias Naturales,DOC-05
+3ro BGU,A,viernes,08:00,08:40,Estudios Sociales,DOC-07
+3ro BGU,A,viernes,08:45,09:25,Inglés,DOC-09
+3ro BGU,A,viernes,09:30,10:10,Educación Física,DOC-11
+3ro BGU,A,viernes,10:30,11:10,Educación Cultural y Artística,DOC-13
+3ro BGU,A,viernes,11:15,11:55,Matemática,DOC-01
+3ro BGU,A,viernes,12:00,12:40,Lengua y Literatura,DOC-03
+3ro BGU,B,lunes,07:15,07:55,Educación Física,DOC-12
+3ro BGU,B,lunes,08:00,08:40,Educación Cultural y Artística,DOC-14
+3ro BGU,B,lunes,08:45,09:25,Matemática,DOC-02
+3ro BGU,B,lunes,09:30,10:10,Lengua y Literatura,DOC-04
+3ro BGU,B,lunes,10:30,11:10,Ciencias Naturales,DOC-06
+3ro BGU,B,lunes,11:15,11:55,Estudios Sociales,DOC-08
+3ro BGU,B,lunes,12:00,12:40,Inglés,DOC-10
+3ro BGU,B,martes,07:15,07:55,Educación Cultural y Artística,DOC-14
+3ro BGU,B,martes,08:00,08:40,Matemática,DOC-02
+3ro BGU,B,martes,08:45,09:25,Lengua y Literatura,DOC-04
+3ro BGU,B,martes,09:30,10:10,Ciencias Naturales,DOC-06
+3ro BGU,B,martes,10:30,11:10,Estudios Sociales,DOC-08
+3ro BGU,B,martes,11:15,11:55,Inglés,DOC-10
+3ro BGU,B,martes,12:00,12:40,Educación Física,DOC-12
+3ro BGU,B,miercoles,07:15,07:55,Matemática,DOC-02
+3ro BGU,B,miercoles,08:00,08:40,Lengua y Literatura,DOC-04
+3ro BGU,B,miercoles,08:45,09:25,Ciencias Naturales,DOC-06
+3ro BGU,B,miercoles,09:30,10:10,Estudios Sociales,DOC-08
+3ro BGU,B,miercoles,10:30,11:10,Inglés,DOC-10
+3ro BGU,B,miercoles,11:15,11:55,Educación Física,DOC-12
+3ro BGU,B,miercoles,12:00,12:40,Educación Cultural y Artística,DOC-14
+3ro BGU,B,jueves,07:15,07:55,Lengua y Literatura,DOC-04
+3ro BGU,B,jueves,08:00,08:40,Ciencias Naturales,DOC-06
+3ro BGU,B,jueves,08:45,09:25,Estudios Sociales,DOC-08
+3ro BGU,B,jueves,09:30,10:10,Inglés,DOC-10
+3ro BGU,B,jueves,10:30,11:10,Educación Física,DOC-12
+3ro BGU,B,jueves,11:15,11:55,Educación Cultural y Artística,DOC-14
+3ro BGU,B,jueves,12:00,12:40,Matemática,DOC-02
+3ro BGU,B,viernes,07:15,07:55,Ciencias Naturales,DOC-06
+3ro BGU,B,viernes,08:00,08:40,Estudios Sociales,DOC-08
+3ro BGU,B,viernes,08:45,09:25,Inglés,DOC-10
+3ro BGU,B,viernes,09:30,10:10,Educación Física,DOC-12
+3ro BGU,B,viernes,10:30,11:10,Educación Cultural y Artística,DOC-14
+3ro BGU,B,viernes,11:15,11:55,Matemática,DOC-02
+3ro BGU,B,viernes,12:00,12:40,Lengua y Literatura,DOC-04

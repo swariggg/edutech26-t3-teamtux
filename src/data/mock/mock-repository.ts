@@ -5,6 +5,7 @@ import { APPLICATION_CONFLICT_MSG, ConflictError, INSTALLMENT_CLOSED_MSG, NotFou
 import { computeDashboardStats } from "../stats";
 import { buildSeed, type MockDB } from "./seed";
 import { institution } from "@/content/institution";
+import { nowISO } from "@/lib/clock";
 
 const g = globalThis as unknown as { __eaMockDB?: MockDB; __eaMockPaymentRefs?: Set<string> };
 /** Referencias de pago ya aplicadas (idempotencia, como el índice único de installment_payments). */
@@ -73,11 +74,21 @@ export class MockRepository implements Repository {
     return a ? this.appView(a) : null;
   }
 
+  async listApplicationsByGuardianDocument(guardianDocumentId: string) {
+    const d = db();
+    const guardian = d.guardians.find((g) => g.documentId !== undefined && g.documentId === guardianDocumentId);
+    if (!guardian) return [];
+    return d.applications
+      .filter((a) => a.guardianId === guardian.id)
+      .map((a) => this.appView(a))
+      .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+  }
+
   // Mismas reglas que public.create_application: no se modifican datos de un representante existente,
   // se reutiliza el estudiante solo si pertenece al mismo representante y hay una solicitud activa por año.
   async createApplication(input: Parameters<Repository["createApplication"]>[0]) {
     const d = db();
-    const now = new Date().toISOString();
+    const now = nowISO();
     let guardian = d.guardians.find((x) => x.documentId === input.guardianDocument);
     const existingStudent = d.students.find((s) => s.documentId === input.studentDocument);
     if (existingStudent && existingStudent.guardianId !== guardian?.id) throw new ConflictError(APPLICATION_CONFLICT_MSG);
@@ -122,7 +133,7 @@ export class MockRepository implements Repository {
   async updateApplicationStatus(id: string, status: ApplicationView["status"], by: string, note?: string) {
     const a = db().applications.find((x) => x.id === id);
     if (!a) throw new NotFoundError("Solicitud");
-    const now = new Date().toISOString();
+    const now = nowISO();
     a.status = status;
     a.updatedAt = now;
     a.history.push({ status, at: now, by, note });
@@ -151,11 +162,14 @@ export class MockRepository implements Repository {
     const d = db();
     const q = studentQuery.trim().toUpperCase();
     const enrollmentByCode = d.enrollments.find((e) => e.code === q);
-    const student = enrollmentByCode ? d.students.find((s) => s.id === enrollmentByCode.studentId) : d.students.find((s) => s.documentId === q);
+    const student = enrollmentByCode
+      ? d.students.find((s) => s.id === enrollmentByCode.studentId)
+      : d.students.find((s) => s.code === q || (s.documentId !== undefined && s.documentId === q));
     if (!student) return null;
     const guardian = d.guardians.find((x) => x.id === student.guardianId);
-    if (guardian?.documentId !== guardianDocumentId) return null;
-    const enrollment = enrollmentByCode ?? d.enrollments.find((e) => e.studentId === student.id);
+    const g = guardianDocumentId.trim().toUpperCase();
+    if (!guardian || !(guardian.code === g || (guardian.documentId !== undefined && guardian.documentId === g))) return null;
+    const enrollment = enrollmentByCode ?? d.enrollments.filter((e) => e.studentId === student.id).sort((a, b) => b.enrolledAt.localeCompare(a.enrolledAt))[0];
     if (!enrollment) return null;
     const installments = d.installments
       .filter((i) => i.enrollmentId === enrollment.id)
@@ -178,7 +192,7 @@ export class MockRepository implements Repository {
     const applied = Math.round((i.amountPaid - before) * 100) / 100;
     const full = i.amountPaid >= i.amount;
     i.status = full ? "pagada" : "parcial";
-    i.paidAt = full ? new Date().toISOString() : undefined;
+    i.paidAt = full ? nowISO() : undefined;
     i.method = data.method;
     if (ref) { i.reference = ref; paymentRefs.add(`${id}|${ref}`); }
     await this.addAuditLog({ actor: data.by, action: "payment.received", entity: "installment", entityId: id, details: { amount: applied, requested: data.amount, method: data.method, reference: ref, status: i.status } });
@@ -193,7 +207,7 @@ export class MockRepository implements Repository {
   }
 
   async addAuditLog(entry: Omit<AuditLog, "id" | "at">) {
-    const log: AuditLog = { ...entry, id: this.nid("log"), at: new Date().toISOString() };
+    const log: AuditLog = { ...entry, id: this.nid("log"), at: nowISO() };
     db().auditLogs.unshift(log);
     return clone(log);
   }
@@ -205,12 +219,12 @@ export class MockRepository implements Repository {
 
   async saveChatMessage(m: { sessionId: string; role: "user" | "assistant"; content: string }) {
     const d = db();
-    d.chatMessages.push({ ...m, id: this.nid("msg"), createdAt: new Date().toISOString() });
+    d.chatMessages.push({ ...m, id: this.nid("msg"), createdAt: nowISO() });
     if (d.chatMessages.length > 500) d.chatMessages.splice(0, d.chatMessages.length - 500);
   }
 
   async getAuditSnapshot() {
     const [applications, installments, enrollments] = await Promise.all([this.listApplications(), this.listInstallments({ limit: 10_000 }), this.listEnrollments()]);
-    return { applications, installments, enrollments, now: new Date().toISOString() };
+    return { applications, installments, enrollments, now: nowISO() };
   }
 }

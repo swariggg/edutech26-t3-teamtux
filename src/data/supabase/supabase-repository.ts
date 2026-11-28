@@ -6,17 +6,19 @@ import type { Repository } from "../repository";
 import { APPLICATION_CONFLICT_MSG, ConflictError, INSTALLMENT_CLOSED_MSG, NotFoundError, effectiveInstallmentStatus, matchesSearch, paginate } from "../repository";
 import { computeDashboardStats } from "../stats";
 import { getSupabase } from "./client";
+import { nowISO } from "@/lib/clock";
 import { institution } from "@/content/institution";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- filas sin tipos generados; ejecutar `supabase gen types` más adelante */
 type Row = Record<string, any>;
 
 const toGuardian = (r: Row): Guardian => ({
-  id: r.id, fullName: r.full_name, documentId: r.document_id, email: r.email ?? "", phone: r.phone ?? "",
+  id: r.id, code: r.code ?? undefined, fullName: r.full_name ?? `Representante ${r.code ?? ""}`.trim(), documentId: r.document_id ?? undefined, email: r.email ?? "", phone: r.phone ?? "",
   relationship: r.relationship, address: r.address ?? undefined, createdAt: r.created_at,
 });
 const toStudent = (r: Row): Student => ({
-  id: r.id, fullName: r.full_name, documentId: r.document_id, birthDate: r.birth_date, gender: r.gender ?? undefined,
+  id: r.id, code: r.code ?? undefined, fullName: r.full_name, documentId: r.document_id ?? undefined, birthDate: r.birth_date ?? undefined,
+  birthYear: r.birth_year ?? undefined, scholarshipPct: r.scholarship_pct ?? 0, gender: r.gender ?? undefined,
   guardianId: r.guardian_id, previousSchool: r.previous_school ?? undefined, specialNeeds: r.special_needs ?? undefined, createdAt: r.created_at,
 });
 const toApplication = (r: Row): Application => ({
@@ -89,6 +91,13 @@ export class SupabaseRepository implements Repository {
     return r ? this.toView(r) : null;
   }
 
+  async listApplicationsByGuardianDocument(guardianDocumentId: string) {
+    const g = must(await this.sb.from("guardians").select("id").eq("document_id", guardianDocumentId).maybeSingle()) as Row | null;
+    if (!g) return [];
+    const rows = must(await this.sb.from("applications").select(APP_SELECT).eq("guardian_id", g.id).order("submitted_at", { ascending: false }).limit(20)) as Row[];
+    return rows.map((r) => this.toView(r));
+  }
+
   /** Transacción única en Postgres (public.create_application): no sobrescribe representantes, código aleatorio. */
   async createApplication(input: Parameters<Repository["createApplication"]>[0]) {
     const { data, error } = await this.sb.rpc("create_application", {
@@ -133,13 +142,16 @@ export class SupabaseRepository implements Repository {
   }
 
   async findPaymentsForFamily(studentQuery: string, guardianDocumentId: string) {
-    // Coincidencia exacta (la ruta ya valida el formato: cédula de 10 dígitos o MAT-AAAA-XXXX).
+    // Coincidencia exacta (la ruta ya valida el formato: EST-###, cédula o MAT-AAAA-XXXX; REP-### o cédula).
     const q = studentQuery.trim().toUpperCase();
+    const g = guardianDocumentId.trim().toUpperCase();
     const byCode = q.startsWith("MAT-") ? (must(await this.sb.from("enrollments").select("*").eq("code", q).maybeSingle()) as Row | null) : null;
-    const studentRow = byCode
-      ? (must(await this.sb.from("students").select("*, guardian:guardians(document_id)").eq("id", byCode.student_id).maybeSingle()) as Row | null)
-      : (must(await this.sb.from("students").select("*, guardian:guardians(document_id)").eq("document_id", q).maybeSingle()) as Row | null);
-    if (!studentRow || studentRow.guardian?.document_id !== guardianDocumentId) return null;
+    const sel = this.sb.from("students").select("*, guardian:guardians(code, document_id)");
+    const studentRow = (byCode
+      ? must(await sel.eq("id", byCode.student_id).maybeSingle())
+      : must(await sel.eq(q.startsWith("EST-") ? "code" : "document_id", q).maybeSingle())) as Row | null;
+    const guardian = studentRow?.guardian as Row | undefined;
+    if (!studentRow || !guardian || !(guardian.code === g || (guardian.document_id != null && guardian.document_id === g))) return null;
     const enrollmentRow = byCode ?? (must(await this.sb.from("enrollments").select("*").eq("student_id", studentRow.id).order("enrolled_at", { ascending: false }).limit(1).maybeSingle()) as Row | null);
     if (!enrollmentRow) return null;
     const ins = must(await this.sb.from("installments").select("*").eq("enrollment_id", enrollmentRow.id).order("due_date")) as Row[];
@@ -187,6 +199,6 @@ export class SupabaseRepository implements Repository {
 
   async getAuditSnapshot() {
     const [applications, installments, enrollments] = await Promise.all([this.listApplications(), this.listInstallments({ limit: 10_000 }), this.listEnrollments()]);
-    return { applications, installments, enrollments, now: new Date().toISOString() };
+    return { applications, installments, enrollments, now: nowISO() };
   }
 }

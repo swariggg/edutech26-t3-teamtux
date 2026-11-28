@@ -16,3 +16,6 @@ npm-debug.log*
 pnpm-debug.log*
 .playwright-cli/
 .vercel
+
+# Archivos de bloqueo de LibreOffice
+.~lock.*#
