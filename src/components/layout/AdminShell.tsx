@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, GraduationCap, LayoutDashboard, LogOut, ShieldCheck, Wallet } from "lucide-react";
+import { BrainCircuit, ClipboardList, UserSearch, GraduationCap, LayoutDashboard, LogOut, ShieldCheck, Wallet } from "lucide-react";
 import { A11yPanel } from "@/components/a11y/A11yPanel";
 import { ThemeToggle } from "@/components/a11y/ThemeToggle";
 import { logout } from "@/app/actions/admin-auth";
@@ -12,6 +12,8 @@ const NAV = [
   { href: "/admin/solicitudes", label: "Solicitudes", Icon: ClipboardList },
   { href: "/admin/matriculas", label: "Matrículas", Icon: GraduationCap },
   { href: "/admin/pagos", label: "Pagos", Icon: Wallet },
+  { href: "/admin/modelos", label: "Modelos IA", Icon: BrainCircuit },
+  { href: "/admin/nuevo-cliente", label: "Evaluar cliente nuevo", Icon: UserSearch },
   { href: "/admin/auditoria", label: "Auditoría", Icon: ShieldCheck },
 ] as const;
 
