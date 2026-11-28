@@ -33,4 +33,4 @@ coverage/
 Thumbs.db
 desktop.ini
 # Archivos de bloqueo de LibreOffice
-.~lock.*#pnpm typecheck
+.~lock.*#

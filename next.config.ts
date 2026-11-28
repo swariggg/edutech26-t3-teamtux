@@ -17,8 +17,9 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Solo desarrollo: permite abrir `pnpm dev` desde la red local (p. ej. http://192.168.x.y:3000) con la app interactiva.
   allowedDevOrigins: ["192.168.*.*"],
-  // El panel de modelos lee los CSV del dataset en tiempo de ejecución.
-  outputFileTracingIncludes: { "/admin/modelos": ["./dataset-ficticio-colegio/*.csv"] },
+  // Sin Supabase, el modo demostración carga el dataset desde los CSV en tiempo de ejecución: se incluyen en todas las rutas.
+  // (Con Supabase, incluidos los modelos IA, los datos se leen de la base.)
+  outputFileTracingIncludes: { "/**": ["./dataset-ficticio-colegio/*.csv"] },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
