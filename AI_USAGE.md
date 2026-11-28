@@ -33,3 +33,37 @@ El historial de Git muestra además commits firmados como coescritos con Claude;
 
 Claude (API de Anthropic) se usa en Clipo, en la revisión de documentos y en el auditor de procesos. Los modelos de predicción son modelos propios hechos con scikit-learn. Cómo funciona cada parte, sus límites y qué pasa si falla está en `README.md` («IA y automatización»).
 
+## 2. IA dentro del producto
+
+### 2.1 IA generativa: Claude (API de Anthropic)
+
+Se usa en Clipo (asistente para familias), en la revisión de documentos de admisión y en el auditor de procesos. Cómo funciona cada parte, sus límites y qué pasa si falla está en `README.md` («IA y automatización»).
+
+### 2.2 Modelos de predicción propios (scikit-learn)
+
+El equipo entrenó tres modelos de clasificación en Python con scikit-learn, usando **solo el dataset ficticio del hackatón**:
+
+| Modelo | Hiperparámetros principales |
+|---|---|
+| Regresión logística (con `StandardScaler`) | `C=1.0`, `class_weight="balanced"` |
+| Árbol de decisión | `max_depth=4` (pagos) · `max_depth=3`, `min_samples_leaf=10` (cliente nuevo) |
+| Random Forest | 200 árboles, `max_depth=5` (pagos) · `max_depth=4`, `min_samples_leaf=5` (cliente nuevo) |
+
+Se usan los tres modelos en dos casos:
+
+**a) Comportamiento de pago del mes (`/admin/modelos`).** Predice si cada familia pagará **puntual, tarde o no pagará** la pensión del mes. Usa su historial: obligaciones y valor del mes, meses de historial, tasas de puntualidad, tardanza e incumplimiento.
+- Entrenamiento: 2 meses (408 filas, ~86 % puntuales). Evaluación: en meses posteriores no vistos, con F1 macro y matriz de confusión. Se compara contra la referencia ingenua «todos pagan puntual».
+
+**b) Evaluar a una familia nueva (`/admin/nuevo-cliente`).** Estima si una familia sin historial es propensa a dejar al menos una pensión impaga. Solo usa datos que se conocen al matricular: número de hijos, porcentaje de beca, valor mensual, curso menor y mayor, y si hay necesidad educativa especial.
+- Datos: 204 familias, 27 % con impago. Validación cruzada `StratifiedKFold(5)`.
+- Resultados (AUC / F1 de la clase impago): RL 0,57 / 0,40 · Árbol 0,58 / 0,41 · RF 0,56 / 0,35.
+
+**Cómo corren en la app:** `Modelos/exportar_modelos.py` y `Modelos/entrenar_nuevo_cliente.py` convierten los modelos `.joblib` a JSON. La inferencia se hace en TypeScript (`src/ml/inference.ts`), sin Python en producción y sin enviar datos a servicios externos.
+
+**Límites (declarados también en la interfaz):**
+- Los datos son sintéticos y hay muy poco historial. Los modelos de pago quedan **por debajo de la referencia ingenua en exactitud**, porque `class_weight="balanced"` prioriza no ignorar a los tardíos e impagos.
+- El modelo de cliente nuevo tiene un AUC de ~0,57, apenas mejor que el azar. Sirve como demostración del enfoque, **no para decidir**.
+- Ningún modelo admite, rechaza ni cobra a nadie de forma automática. Solo prioriza a quién recordar o contactar, y la decisión es siempre del personal de colecturía.
+- **Riesgo de sesgo:** variables como la beca o tener una necesidad educativa especial **no deben usarse para negar una matrícula**. En una implementación real habría que auditar el sesgo y reentrenar con datos reales anonimizados (LOPDP).
+
+**Si falla:** si el JSON de un modelo no carga, las páginas de modelos muestran el error y el resto del sistema (admisión, pagos, recordatorios) sigue funcionando igual.
