@@ -44,7 +44,7 @@ Funciona **sin ninguna variable de entorno**: usa datos simulados en memoria (se
 
 | Variable | Efecto |
 |---|---|
-| `ANTHROPIC_API_KEY` | El asesor y el auditor usan Claude (`ANTHROPIC_MODEL`, por defecto `claude-opus-5-5`). |
+| `ANTHROPIC_API_KEY` | El asesor y el auditor usan Claude (`ANTHROPIC_MODEL`, por defecto `claude-opus-5-5`). El modo voz del asesor usa el mismo modelo, con un prompt de estilo oral. |
 | `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` | Los datos se leen y escriben en Supabase. Aplica `supabase/migrations/` y `supabase/seed.sql` (el dataset completo; `supabase db reset` hace ambas cosas). |
 | `ADMIN_PASSCODE` + `SESSION_SECRET` | Acceso al panel. En desarrollo, sin ellas se usa `admin-demo`. **En producción son obligatorias** (≥16 y ≥32 caracteres); si faltan, el panel queda cerrado. |
 | `N8N_WEBHOOK_SECRET`, `N8N_OUTBOUND_WEBHOOK_URL` | Integración con n8n (ver `n8n/README.md`). Sin `N8N_WEBHOOK_SECRET` el webhook responde 401 en todos los entornos. |

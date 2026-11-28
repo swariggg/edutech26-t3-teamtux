@@ -1,6 +1,6 @@
 import { CHAT_MAX_TOTAL_CHARS, CHAT_MAX_TURNS, ChatRequest } from "@/domain/schemas";
 import { getLLM } from "@/ai/llm";
-import { ADVISOR_SYSTEM } from "@/ai/prompts";
+import { ADVISOR_SYSTEM, ADVISOR_VOICE_SYSTEM } from "@/ai/prompts";
 import { getRepository } from "@/data";
 import { iterableToStream } from "@/lib/stream";
 import { clientIp, jsonError, parseBody } from "@/lib/http";
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   if (!rl.ok || !global.ok) return jsonError("Demasiados mensajes. Espera un momento.", 429, { retryAfter: Math.max(rl.retryAfter, global.retryAfter) });
   const parsed = await parseBody(req, ChatRequest, 160_000);
   if ("response" in parsed) return parsed.response;
-  const { sessionId } = parsed.data;
+  const { sessionId, mode } = parsed.data;
   const messages = trimHistory(parsed.data.messages);
 
   const llm = getLLM();
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
   const last = messages[messages.length - 1]!;
   if (sessionId) void repo.saveChatMessage({ sessionId, role: "user", content: last.content }).catch(() => {});
 
-  const body = iterableToStream(llm.streamChat({ system: ADVISOR_SYSTEM, messages, signal: req.signal }), (full) => {
+  const body = iterableToStream(llm.streamChat({ system: mode === "voice" ? ADVISOR_VOICE_SYSTEM : ADVISOR_SYSTEM, messages, signal: req.signal }), (full) => {
     if (sessionId && full) void repo.saveChatMessage({ sessionId, role: "assistant", content: full }).catch(() => {});
   });
 

@@ -68,6 +68,8 @@ export const ChatRequest = z.object({
     .max(60)
     .refine((m) => m[m.length - 1]?.role === "user", "El último mensaje debe ser del usuario"),
   sessionId: z.string().uuid().optional(),
+  /** voice: la respuesta se leerá en voz alta (frases cortas, sin formato). */
+  mode: z.enum(["text", "voice"]).optional(),
 });
 
 export const StatusChangeInput = z.object({
