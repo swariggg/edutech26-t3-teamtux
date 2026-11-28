@@ -58,8 +58,9 @@ export function StatusLookup({ initialCode = "" }: { initialCode?: string }) {
         </form>
       </GlassCard>
 
-      <div aria-live="polite">
-        {error && <Alert tone="warning" title="Sin resultados">{error}</Alert>}
+      <div>
+        {/* Solo el error se anuncia solo; el resultado se lee al recibir el foco en su título. */}
+        <div aria-live="polite">{error && <Alert tone="warning" title="Sin resultados">{error}</Alert>}</div>
         {result && (
           <GlassCard as="section" className="flex flex-col gap-6 p-5 sm:p-6" aria-labelledby="res-title">
             <div className="flex flex-wrap items-start justify-between gap-3">

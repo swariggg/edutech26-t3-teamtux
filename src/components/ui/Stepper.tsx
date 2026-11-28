@@ -13,7 +13,7 @@ export function Stepper({ steps, current }: { steps: string[]; current: number }
               {done ? <Check aria-hidden className="size-4" /> : i + 1}
               <span className="sr-only">{done ? " (completado)" : active ? " (actual)" : ""}</span>
             </span>
-            <span className={cn("text-sm", active ? "font-semibold" : "text-muted", "hidden sm:inline")}>{s}</span>
+            <span className={cn("text-sm", active ? "font-semibold" : "text-muted", "sr-only sm:not-sr-only")}>{s}</span>
             {i < steps.length - 1 && <span aria-hidden className="hidden h-px w-6 bg-line sm:block" />}
           </li>
         );

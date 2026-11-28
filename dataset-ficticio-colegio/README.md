@@ -46,6 +46,3 @@ después del día 10 es pago tardío).
 - Seguimiento de pensiones vencidas por familia (representante).
 - Apoyo a estudiantes con necesidades educativas: cruza notas y asistencia.
 - Optimización de horarios o carga docente.
-
-Puedes cargar los CSV en n8n, DuckDB, SQLite, Google Sheets o pandas. Si los modificas, sigue
-declarando en `data/README.md` que son sintéticos.

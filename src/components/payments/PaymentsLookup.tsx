@@ -55,8 +55,9 @@ export function PaymentsLookup() {
         </form>
       </GlassCard>
 
-      <div aria-live="polite">
-        {error && <Alert tone="warning" title="Sin resultados">{error}</Alert>}
+      <div>
+        {/* Solo el error se anuncia solo; así el lector de pantalla no lee de golpe toda la tabla de pagos. */}
+        <div aria-live="polite">{error && <Alert tone="warning" title="Sin resultados">{error}</Alert>}</div>
         {data && (
           <section className="flex flex-col gap-4" aria-labelledby="pay-title">
             <h2 id="pay-title" ref={ref} tabIndex={-1} className="text-2xl font-semibold outline-none">Pagos de {data.studentFirstName} · {data.grade} <span className="text-base font-normal text-muted">({data.enrollmentCode})</span></h2>

@@ -24,7 +24,7 @@ usa 8 horas al día y que familias usan con estrés. Nada de neón, nada de blan
 | `--accent` | `#2F9E83` menta aurora | `#6EE7C5` | Detalles, gráficos (no texto pequeño en claro) |
 | `--success` | `#1F7A55` | `#5FD3A0` | Pagado, aprobado |
 | `--warning` | `#9A5B00` | `#F2B75B` | Pendiente, por vencer |
-| `--danger` | `#B42318` | `#F28B82` | Vencido, rechazado |
+| `--danger` | `#8F4A52` | `#D9A5AA` | Vencido, rechazado, errores de formulario. Tono poco saturado a propósito |
 | `--ring` | `#0E6E8C` | `#7FD6EE` | Anillo de foco 2px + offset 2px |
 
 ## Superficies glass

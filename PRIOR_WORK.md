@@ -43,4 +43,4 @@ Gestor de paquetes: `pnpm@10.33.0` · Node.js `>=22`. Las dependencias indirecta
 
 - Google Fonts, cargadas con `next/font/google`: Inter, Space Grotesk y Atkinson Hyperlegible.
 - Iconos de `lucide-react`.
-
+node -v

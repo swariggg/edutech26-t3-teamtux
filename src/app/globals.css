@@ -16,7 +16,8 @@
   --accent: #2f9e83;
   --success: #1f7a55;
   --warning: #9a5b00;
-  --danger: #b42318;
+  /* Tono de error poco saturado a propósito (sensibilidad sensorial). Mantiene texto >= 4.5:1. */
+  --danger: #8f4a52;
   --info: #0e6e8c;
   --ring: #0e6e8c;
   --surface-solid: #f6f8fa;
@@ -64,7 +65,7 @@
   --accent: #6ee7c5;
   --success: #5fd3a0;
   --warning: #f2b75b;
-  --danger: #f28b82;
+  --danger: #d9a5aa;
   --info: #5cc8e6;
   --ring: #7fd6ee;
   --surface-solid: #101b2a;
@@ -88,7 +89,7 @@
   --accent: #0e5240;
   --success: #14583c;
   --warning: #6b3f00;
-  --danger: #8a1a10;
+  --danger: #6e2a35;
   --info: #004a63;
   --ring: #000000;
   --border-subtle: #000000;
@@ -102,7 +103,7 @@
   --accent: #a6f5de;
   --success: #8ff0c4;
   --warning: #ffd591;
-  --danger: #ffb4ab;
+  --danger: #f0c6ca;
   --info: #9fe3f5;
   --ring: #ffffff;
   --border-subtle: #ffffff;

@@ -47,7 +47,7 @@ export function NewClientEvaluator() {
                 </div>
                 <label className="flex min-h-11 items-center gap-2 text-sm">
                   <input type="checkbox" checked={h.nee} onChange={(e) => setHijo(i, { nee: e.target.checked })} className="size-5 accent-[var(--primary)]" />
-                  Necesidad educativa especial
+                  <span>Necesidad educativa especial<span className="sr-only"> del hijo {i + 1}</span></span>
                 </label>
               </div>
             ))}

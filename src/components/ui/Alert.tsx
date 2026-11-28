@@ -1,11 +1,11 @@
-import { AlertTriangle, CheckCircle2, Info, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, CircleAlert, Info } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const map = {
   info: { Icon: Info, cls: "border-info/40 text-foreground", ic: "text-info" },
   success: { Icon: CheckCircle2, cls: "border-success/40 text-foreground", ic: "text-success" },
   warning: { Icon: AlertTriangle, cls: "border-warning/50 text-foreground", ic: "text-warning" },
-  danger: { Icon: XCircle, cls: "border-danger/50 text-foreground", ic: "text-danger" },
+  danger: { Icon: CircleAlert, cls: "border-danger/50 text-foreground", ic: "text-danger" },
 } as const;
 
 export function Alert({ tone = "info", title, children, className, role }: { tone?: keyof typeof map; title?: string; children?: React.ReactNode; className?: string; role?: "alert" | "status" }) {

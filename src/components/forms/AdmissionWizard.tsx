@@ -1,7 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CircleAlert, Send } from "lucide-react";
 import type { z } from "zod";
 import { GradeStep, GuardianStep, StudentStep } from "@/domain/schemas";
 import { institution } from "@/content/institution";
@@ -15,6 +15,15 @@ import { Alert } from "@/components/ui/Alert";
 const STEPS = ["Estudiante", "Representante", "Grado y documentos", "Revisión"];
 type Values = Record<string, string | string[] | boolean>;
 type Errors = Record<string, string>;
+
+/** Nombre visible de cada campo, para indicar en el resumen cuál tiene el error. */
+const FIELD_LABELS: Record<string, string> = {
+  studentName: "Nombre completo del estudiante", studentDocument: "Cédula del estudiante", birthDate: "Fecha de nacimiento",
+  gender: "Género", previousSchool: "Institución anterior", specialNeeds: "Necesidades educativas o de salud",
+  guardianName: "Nombre completo del representante", guardianDocument: "Cédula del representante", email: "Correo electrónico",
+  phone: "Teléfono", relationship: "Parentesco", address: "Dirección",
+  gradeApplied: "Grado al que postula", consent: "Términos y condiciones",
+};
 
 const initial: Values = {
   studentName: "", studentDocument: "", birthDate: "", gender: "", previousSchool: "", specialNeeds: "",
@@ -125,7 +134,7 @@ export function AdmissionWizard() {
       {errorCount > 0 && (
         <Alert tone="danger" role="alert" title={`Revisa ${errorCount === 1 ? "1 campo" : `${errorCount} campos`} antes de continuar`}>
           <ul className="list-disc pl-5">
-            {Object.entries(errors).map(([k, m]) => (<li key={k}><a href={`#${k}`}>{m}</a></li>))}
+            {Object.entries(errors).map(([k, m]) => (<li key={k}><a href={`#${k}`}>{FIELD_LABELS[k] ?? k}: {m}</a></li>))}
           </ul>
         </Alert>
       )}
@@ -145,8 +154,8 @@ export function AdmissionWizard() {
               </Select>
             </Field>
             {input("previousSchool", "Institución anterior")}
-            <Field id="specialNeeds" label="Necesidades educativas o de salud" hint="Nos ayuda a preparar los apoyos necesarios." className="sm:col-span-2">
-              <Textarea id="specialNeeds" name="specialNeeds" value={str("specialNeeds")} onChange={(e) => set("specialNeeds", e.target.value)} aria-describedby="specialNeeds-hint" />
+            <Field id="specialNeeds" label="Necesidades educativas o de salud" hint="Nos ayuda a preparar los apoyos necesarios." error={errors.specialNeeds} className="sm:col-span-2">
+              <Textarea id="specialNeeds" name="specialNeeds" value={str("specialNeeds")} onChange={(e) => set("specialNeeds", e.target.value)} aria-invalid={Boolean(errors.specialNeeds)} aria-describedby={describedBy("specialNeeds", "hint", errors.specialNeeds)} />
             </Field>
           </div>
         )}
@@ -158,7 +167,7 @@ export function AdmissionWizard() {
             {input("email", "Correo electrónico", { type: "email", required: true, autoComplete: "email" })}
             {input("phone", "Teléfono", { type: "tel", required: true, autoComplete: "tel" })}
             <Field id="relationship" label="Parentesco" required error={errors.relationship}>
-              <Select id="relationship" name="relationship" value={str("relationship")} onChange={(e) => set("relationship", e.target.value)}>
+              <Select id="relationship" name="relationship" required value={str("relationship")} onChange={(e) => set("relationship", e.target.value)} aria-invalid={Boolean(errors.relationship)} aria-describedby={describedBy("relationship", undefined, errors.relationship)}>
                 {Object.entries(relationshipLabel).map(([v, l]) => (<option key={v} value={v}>{l}</option>))}
               </Select>
             </Field>
@@ -169,14 +178,14 @@ export function AdmissionWizard() {
         {step === 2 && (
           <div className="flex flex-col gap-6">
             <Field id="gradeApplied" label="Grado al que postula" required error={errors.gradeApplied}>
-              <Select id="gradeApplied" name="gradeApplied" value={str("gradeApplied")} onChange={(e) => set("gradeApplied", e.target.value)} aria-invalid={Boolean(errors.gradeApplied)} aria-describedby={describedBy("gradeApplied", undefined, errors.gradeApplied)}>
+              <Select id="gradeApplied" name="gradeApplied" required value={str("gradeApplied")} onChange={(e) => set("gradeApplied", e.target.value)} aria-invalid={Boolean(errors.gradeApplied)} aria-describedby={describedBy("gradeApplied", undefined, errors.gradeApplied)}>
                 <option value="">Selecciona un grado</option>
                 {institution.grades.map((g) => (<option key={g.id} value={g.id}>{g.label} · {g.level}</option>))}
               </Select>
             </Field>
-            <fieldset className="flex flex-col gap-2">
+            <fieldset className="flex flex-col gap-2" aria-describedby="documents-help">
               <legend className="mb-1 font-medium">Documentos que ya tienes listos</legend>
-              <p className="text-sm text-muted">Los entregarás en secretaría o por correo. Puedes enviar la solicitud aunque falte alguno.</p>
+              <p id="documents-help" className="text-sm text-muted">Los entregarás en secretaría o por correo. Puedes enviar la solicitud aunque falte alguno.</p>
               {institution.requirements.map((r) => (
                 <label key={r.kind} className="flex min-h-11 items-center gap-3 rounded-md px-2 hover:bg-black/[0.03] dark:hover:bg-white/5">
                   <input type="checkbox" name="documents" className="size-5 accent-[var(--primary)]" checked={docs.includes(r.kind)} onChange={(e) => set("documents", e.target.checked ? [...docs, r.kind] : docs.filter((d) => d !== r.kind))} />
@@ -184,12 +193,22 @@ export function AdmissionWizard() {
                 </label>
               ))}
             </fieldset>
-            <div>
-              <label className="flex items-start gap-3">
-                <input type="checkbox" id="consent" name="consent" className="mt-1 size-5 accent-[var(--primary)]" checked={values.consent === true} onChange={(e) => set("consent", e.target.checked)} aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? "consent-error" : undefined} />
+            {/* Consentimiento: se distingue de los documentos con un recuadro de color y una casilla circular. */}
+            <div className={`rounded-lg border-2 p-4 ${errors.consent ? "border-danger bg-danger/5" : "border-warning/60 bg-warning/10"}`}>
+              <p id="consent-title" className="mb-2 font-semibold text-warning">Términos y condiciones (obligatorio)</p>
+              <label className="flex min-h-11 cursor-pointer items-start gap-3">
+                <span className="relative mt-0.5 inline-flex size-7 shrink-0">
+                  <input type="checkbox" id="consent" name="consent" className={`peer size-7 cursor-pointer appearance-none rounded-full border-2 bg-surface checked:border-warning checked:bg-warning ${errors.consent ? "border-danger" : "border-warning"}`} checked={values.consent === true} onChange={(e) => set("consent", e.target.checked)} required aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? "consent-title consent-error" : "consent-title"} />
+                  <Check aria-hidden strokeWidth={3} className="pointer-events-none absolute inset-0 m-auto size-4 text-[var(--bg)] opacity-0 peer-checked:opacity-100" />
+                </span>
                 <span>Acepto que {institution.name} use estos datos solo para el proceso de admisión. <span aria-hidden className="text-danger">*</span></span>
               </label>
-              {errors.consent && <p id="consent-error" className="mt-1 text-sm font-medium text-danger">{errors.consent}</p>}
+              {errors.consent && (
+                <p id="consent-error" className="mt-1 flex items-start gap-1.5 text-sm font-medium text-danger">
+                  <CircleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+                  {errors.consent}
+                </p>
+              )}
             </div>
           </div>
         )}

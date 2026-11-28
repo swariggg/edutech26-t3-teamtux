@@ -78,7 +78,7 @@ Nota n8n Cloud: los nodos no pueden leer variables de entorno (`$env`), por eso 
 
 **Límites y comportamiento ante fallos:**
 - **Sin `N8N_OUTBOUND_WEBHOOK_URL`:** no se envía nada. La confirmación lo indica y la bitácora registra `delivery: sin_n8n (no enviado)`. Para la demo, el código sigue visible en la pantalla de confirmación.
-- **n8n caído o lento:** la app espera como máximo 5 s, registra el error en consola y **la solicitud se guarda igual**. El envío es de mejor esfuerzo y no hay cola de reintentos en la app.
-- **SMTP falla:** n8n reintenta 3 veces cada 5 s. Si sigue fallando, la ejecución queda como fallida en n8n y la familia puede usar «¿Olvidaste tu código?».
+- **n8n caído o lento:** la app espera hasta 8 s por intento y lo intenta una vez más si falla la conexión o se acaba el tiempo (en este último caso el correo podría llegar dos veces). Registra el error en consola y **la solicitud se guarda igual**. El envío es de mejor esfuerzo y no hay cola de reintentos en la app.
+- **El correo falla (Gmail o SMTP):** n8n hace hasta 3 intentos, con 5 s entre cada uno. Si sigue fallando, la ejecución queda como fallida en n8n y la familia puede usar «¿Olvidaste tu código?».
 - **WhatsApp:** necesita una cuenta aprobada de WhatsApp Business. Por eso el nodo viene desactivado. Los números de Ecuador `09…` se convierten a `5939…`.
 - **Probado:** el payload real que emite la app se pasó por el nodo «Armar mensaje», incluida la prueba de escape de HTML. Falta probar la importación en una instancia de n8n.

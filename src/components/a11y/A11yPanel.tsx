@@ -1,6 +1,6 @@
 "use client";
 import { useId, useRef } from "react";
-import { Accessibility, RotateCcw, X } from "lucide-react";
+import { PersonStanding, RotateCcw, X } from "lucide-react";
 import { resetPrefs, setPrefs, TEXT_SCALES, usePrefs } from "@/components/providers/preferences";
 import { ThemeToggle } from "./ThemeToggle";
 import { useRovingRadio } from "./useRovingRadio";
@@ -45,7 +45,7 @@ export function A11yPanel() {
         className="glass-inset inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full px-3 text-sm font-medium hover:text-primary"
         aria-haspopup="dialog"
       >
-        <Accessibility aria-hidden className="size-5" />
+        <PersonStanding aria-hidden className="size-5" />
         <span className="sr-only sm:not-sr-only">Accesibilidad</span>
       </button>
       <dialog

@@ -23,7 +23,11 @@ export default async function ConfirmacionPage({ searchParams }: { searchParams:
         <>
           <p className="text-muted">Este es tu <strong className="text-foreground">código de seguimiento</strong>. Guárdalo: lo necesitarás junto con la <strong className="text-foreground">cédula del representante</strong> para consultar el estado.</p>
           <div className="flex flex-col items-center gap-3">
-            <p className="glass-inset rounded-lg px-6 py-4 font-heading text-3xl font-semibold tracking-wider tabular-nums select-all" aria-label={`Código de seguimiento ${code.split("").join(" ")}`}>{code}</p>
+            <p className="glass-inset rounded-lg px-6 py-4 font-heading text-3xl font-semibold tracking-wider tabular-nums">
+              {/* Un <p> no admite aria-label: el lector de pantalla recibe el código deletreado aquí. */}
+              <span className="sr-only">Código de seguimiento: {code.split("").join(" ")}</span>
+              <span aria-hidden className="select-all">{code}</span>
+            </p>
             <CopyButton text={code} label="Copiar código" />
           </div>
           <p className="text-sm text-muted">

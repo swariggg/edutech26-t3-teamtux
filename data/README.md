@@ -25,3 +25,4 @@ Equivalencias:
   coincidan con los CSV. Para cambiarlo, usa `DEMO_TODAY`.
 
 Para regenerar `supabase/seed.sql`, ejecuta `pnpm db:seed` (`scripts/build-seed-sql.mjs`).
+

@@ -52,7 +52,7 @@ export function MarkPaidButton({ id, owed, label }: { id: string; owed: number; 
             <Input id={`amt-${id}`} type="number" min="0.01" step="0.01" max={owed} value={amount} onChange={(e) => setAmount(e.target.value)} required />
           </Field>
           <Field id={`met-${id}`} label="Método" required>
-            <Select id={`met-${id}`} value={method} onChange={(e) => setMethod(e.target.value)}>
+            <Select id={`met-${id}`} required value={method} onChange={(e) => setMethod(e.target.value)}>
               {PAYMENT_METHODS.map((m) => <option key={m} value={m}>{methodLabel[m]}</option>)}
             </Select>
           </Field>

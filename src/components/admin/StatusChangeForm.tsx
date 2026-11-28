@@ -30,7 +30,7 @@ export function StatusChangeForm({ id, current }: { id: string; current: Applica
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <Field id="new-status" label="Nuevo estado" required>
-        <Select id="new-status" value={status} onChange={(e) => setStatus(e.target.value as ApplicationStatus)}>
+        <Select id="new-status" required value={status} onChange={(e) => setStatus(e.target.value as ApplicationStatus)}>
           {APPLICATION_STATUSES.filter((s) => s !== "borrador").map((s) => <option key={s} value={s}>{applicationStatusMeta[s].label}</option>)}
         </Select>
       </Field>

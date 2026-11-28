@@ -59,7 +59,7 @@ export default async function SolicitudDetalle({ params }: { params: Promise<{ i
               <li key={d.kind} className="flex items-center gap-2 text-sm">
                 {d.received ? <CheckCircle2 aria-hidden className="size-4 text-success" /> : <XCircle aria-hidden className="size-4 text-danger" />}
                 <span>{documentLabel[d.kind]}</span>
-                <span className="sr-only">{d.received ? "recibido" : "pendiente"}</span>
+                {d.received && <span className="sr-only">recibido</span>}
                 {!d.received && <span className="text-muted">(pendiente)</span>}
               </li>
             ))}
