@@ -35,13 +35,21 @@ export const StatusLookupInput = z.object({
   trackingCode: z.string().trim().toUpperCase().regex(/^ADM-\d{4}-[A-Z0-9]{4,8}$/, "Formato: ADM-2026-K7P2QX"),
   guardianDocument: cedula,
 });
+/** «¿Olvidaste tu código?»: solo la cédula del representante; la respuesta es siempre la misma. */
+export const RecoverCodeInput = z.object({ guardianDocument: cedula });
+
 export const PaymentsLookupInput = z.object({
   studentQuery: z
     .string()
     .trim()
     .toUpperCase()
-    .regex(/^(\d{10}|MAT-\d{4}-[A-Z0-9]{4,8})$/, "Ingresa la cédula (10 dígitos) o el código de matrícula (MAT-2026-0001)"),
-  guardianDocument: cedula,
+    .regex(/^(\d{10}|EST-\d{3,4}|MAT-\d{4}-[A-Z0-9]{4,8})$/, "Ingresa el código del estudiante (EST-001), su cédula o el código de matrícula (MAT-2025-0001)"),
+  // Representantes del dataset: código REP-###. Familias que postularon en línea: cédula.
+  guardianDocument: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^(\d{10}|REP-\d{3,4})$/, "Ingresa el código del representante (REP-001) o su cédula (10 dígitos)"),
 });
 
 /** Límites del chat público (abuso de costo): el servidor además recorta a CHAT_MAX_TURNS y CHAT_MAX_TOTAL_CHARS. */

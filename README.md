@@ -42,20 +42,27 @@ Funciona **sin ninguna variable de entorno**: usa datos simulados en memoria (se
 | Variable | Efecto |
 |---|---|
 | `ANTHROPIC_API_KEY` | El asesor y el auditor usan Claude (`ANTHROPIC_MODEL`, por defecto `claude-opus-5-5`). |
-| `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` | Los datos se leen y escriben en Supabase. Aplica `supabase/migrations/` (y opcionalmente `supabase/seed.sql`). |
+| `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` | Los datos se leen y escriben en Supabase. Aplica `supabase/migrations/` y `supabase/seed.sql` (el dataset completo; `supabase db reset` hace ambas cosas). |
 | `ADMIN_PASSCODE` + `SESSION_SECRET` | Acceso al panel. En desarrollo, sin ellas se usa `admin-demo`. **En producción son obligatorias** (≥16 y ≥32 caracteres); si faltan, el panel queda cerrado. |
 | `N8N_WEBHOOK_SECRET`, `N8N_OUTBOUND_WEBHOOK_URL` | Integración con n8n (ver `n8n/README.md`). Sin `N8N_WEBHOOK_SECRET` el webhook responde 401 en todos los entornos. |
 
-### Datos de demostración (modo simulado)
+### Datos
 
-- Estado de solicitud (`/estado`): código `ADM-2026-0001`, cédula del representante `0912345678`.
-- Pagos (`/pagos`): estudiante `0910000000` o `MAT-2026-0001`, cédula del representante `0912345678`.
+El sistema solo contiene los datos del **dataset ficticio** `dataset-ficticio-colegio/` (240 estudiantes, año 2025-2026, corte enero 2026; ver `data/README.md`). Los estudiantes y representantes se identifican con los códigos del dataset (`EST-###`, `REP-###`), porque el dataset no trae cédulas.
+
+- Modo simulado: los CSV se cargan en memoria al arrancar y el reloj de la demo arranca el 31 ene 2026 (`DEMO_TODAY` lo cambia).
+- Supabase: `pnpm db:seed` regenera `supabase/seed.sql` desde los CSV (incluye asistencia, notas, horarios y docentes).
+
+### Datos de demostración
+
+- Pagos (`/pagos`): estudiante `EST-001` o `MAT-2025-0001`, representante `REP-001`.
+- Estado de solicitud (`/estado`): no hay solicitudes precargadas; envía una en `/admision` y usa el código y la cédula que registres.
 - Panel (`/admin`): clave `admin-demo` (solo con `pnpm dev`; en `pnpm start` define `ADMIN_PASSCODE` y `SESSION_SECRET`).
 - Las solicitudes nuevas reciben un código aleatorio, p. ej. `ADM-2026-K7P2QX`.
 
 ### Scripts
 
-`pnpm dev` · `pnpm build` · `pnpm start` · `pnpm lint` · `pnpm typecheck`
+`pnpm dev` · `pnpm build` · `pnpm start` · `pnpm lint` · `pnpm typecheck` · `pnpm db:seed`
 
 ## Estructura
 

@@ -2,6 +2,7 @@ import type { ApplicationView, DashboardStats, EnrollmentView, InstallmentView }
 import { APPLICATION_STATUSES, applicationStatusMeta } from "@/domain/labels";
 import { institution } from "@/content/institution";
 import { formatMonth } from "@/domain/format";
+import { now as clockNow } from "@/lib/clock";
 
 const round = (n: number) => Math.round(n * 100) / 100;
 
@@ -9,7 +10,7 @@ export function computeDashboardStats(
   applications: ApplicationView[],
   enrollments: EnrollmentView[],
   installments: InstallmentView[],
-  now = new Date(),
+  now = clockNow(),
 ): DashboardStats {
   const active = installments.filter((i) => i.status !== "anulada");
   const collected = active.reduce((s, i) => s + i.amountPaid, 0);

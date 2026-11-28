@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { MarkPaidInput } from "@/domain/schemas";
 import { getRepository } from "@/data";
-import { ConflictError, NotFoundError } from "@/data/repository";
+import { isConflictError, isNotFoundError } from "@/data/repository";
 import type { PaymentMethod } from "@/domain/types";
 import { emitEvent } from "@/lib/n8n";
 import { isAdminRequest } from "@/lib/session";
@@ -22,8 +22,8 @@ export async function PATCH(req: Request, ctx: RouteContext<"/api/admin/payments
     if (applied) void emitEvent("payment.received", { installmentId: id, amount: parsed.data.amount, method, status: ins.status });
     return NextResponse.json({ ok: true, applied, status: ins.status, amountPaid: ins.amountPaid });
   } catch (error) {
-    if (error instanceof NotFoundError) return jsonError(error.message, 404);
-    if (error instanceof ConflictError) return jsonError(error.message, 409);
+    if (isNotFoundError(error)) return jsonError(error.message, 404);
+    if (isConflictError(error)) return jsonError(error.message, 409);
     console.error("[admin/payments]", error);
     return jsonError("No se pudo registrar el pago", 500);
   }

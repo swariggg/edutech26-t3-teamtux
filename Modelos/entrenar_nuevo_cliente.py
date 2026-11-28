@@ -27,7 +27,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeClassifier
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "data" / "dataset-ficticio-colegio"
+DATA = ROOT / "dataset-ficticio-colegio"
 OUT_JSON = ROOT / "src" / "ml" / "modelos-nuevo-cliente.json"
 OUT_DIR = ROOT / "Modelos" / "nuevo_cliente"
 

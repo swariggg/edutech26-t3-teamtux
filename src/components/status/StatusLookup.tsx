@@ -22,8 +22,8 @@ export interface PublicStatus {
   nextSteps: string;
 }
 
-export function StatusLookup() {
-  const [code, setCode] = useState("");
+export function StatusLookup({ initialCode = "" }: { initialCode?: string }) {
+  const [code, setCode] = useState(initialCode);
   const [doc, setDoc] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,11 +48,11 @@ export function StatusLookup() {
     <div className="flex flex-col gap-6">
       <GlassCard as="section" className="p-5 sm:p-6" aria-label="Buscar solicitud">
         <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-          <Field id="trackingCode" label="Código de seguimiento" required hint="Ejemplo: ADM-2026-0001">
+          <Field id="trackingCode" label="Código de seguimiento" required hint="Ejemplo: ADM-2026-K7P2QX">
             <Input id="trackingCode" name="trackingCode" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} required autoComplete="off" aria-describedby={describedBy("trackingCode", "x")} />
           </Field>
-          <Field id="guardianDocument" label="Cédula del representante" required hint="10 dígitos">
-            <Input id="guardianDocument" name="guardianDocument" value={doc} onChange={(e) => setDoc(e.target.value)} required inputMode="numeric" autoComplete="off" aria-describedby={describedBy("guardianDocument", "x")} />
+          <Field id="guardianDocument" label="Cédula del representante" required hint="10 dígitos. La del padre, madre o tutor (no la del estudiante)">
+            <Input id="guardianDocument" name="guardianDocument" autoFocus={Boolean(initialCode)} value={doc} onChange={(e) => setDoc(e.target.value)} required inputMode="numeric" autoComplete="off" aria-describedby={describedBy("guardianDocument", "x")} />
           </Field>
           <Button type="submit" disabled={loading} aria-busy={loading} className="sm:mb-7"><Search aria-hidden className="size-4" /> {loading ? "Buscando…" : "Consultar"}</Button>
         </form>

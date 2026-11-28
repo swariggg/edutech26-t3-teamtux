@@ -60,7 +60,7 @@ export default async function ModelosPage() {
           {MODEL_IDS.map((id) => (
             <li key={id}>{MODEL_META[id].label}: {Object.entries(data.params[id]).map(([k, v]) => `${k}=${String(v)}`).join(", ")}.</li>
           ))}
-          <li>Datos: <code>data/dataset-ficticio-colegio</code> — todos sintéticos, no corresponden a personas reales.</li>
+          <li>Datos: <code>dataset-ficticio-colegio/</code> — todos sintéticos, no corresponden a personas reales.</li>
         </ul>
       </section>
     </>

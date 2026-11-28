@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { N8nEvent } from "@/domain/schemas";
 import { getRepository } from "@/data";
 import type { ApplicationStatus, PaymentMethod } from "@/domain/types";
-import { ConflictError, NotFoundError } from "@/data/repository";
+import { isConflictError, isNotFoundError } from "@/data/repository";
 import { logAudit } from "@/lib/audit";
 import { env } from "@/lib/env";
 import { timingSafeEqual } from "@/lib/auth";
@@ -46,8 +46,8 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ ok: true });
   } catch (error) {
-    if (error instanceof NotFoundError) return jsonError(error.message, 404);
-    if (error instanceof ConflictError) return jsonError(error.message, 409);
+    if (isNotFoundError(error)) return jsonError(error.message, 404);
+    if (isConflictError(error)) return jsonError(error.message, 409);
     console.error("[webhook n8n]", error);
     return jsonError("Error procesando el evento", 500);
   }

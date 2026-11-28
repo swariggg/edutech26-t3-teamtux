@@ -32,3 +32,6 @@ coverage/
 # windows
 Thumbs.db
 desktop.ini
+
+# Archivos de bloqueo de LibreOffice
+.~lock.*#

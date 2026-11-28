@@ -33,7 +33,7 @@ export default async function SolicitudDetalle({ params }: { params: Promise<{ i
           <h2 id="est" className="mb-3 text-lg font-semibold">Estudiante</h2>
           <dl className="grid gap-2 text-sm">
             <div><dt className="text-muted">Nombre</dt><dd className="font-medium">{app.student.fullName}</dd></div>
-            <div><dt className="text-muted">Cédula</dt><dd className="font-medium tabular-nums">{app.student.documentId}</dd></div>
+            <div><dt className="text-muted">Cédula</dt><dd className="font-medium tabular-nums">{app.student.documentId ?? app.student.code ?? "—"}</dd></div>
             <div><dt className="text-muted">Nacimiento</dt><dd className="font-medium">{formatDate(app.student.birthDate)}</dd></div>
             {app.student.previousSchool && <div><dt className="text-muted">Institución anterior</dt><dd className="font-medium">{app.student.previousSchool}</dd></div>}
             {app.student.specialNeeds && <div><dt className="text-muted">Necesidades</dt><dd className="font-medium">{app.student.specialNeeds}</dd></div>}
@@ -43,7 +43,7 @@ export default async function SolicitudDetalle({ params }: { params: Promise<{ i
           <h2 id="rep" className="mb-3 text-lg font-semibold">Representante</h2>
           <dl className="grid gap-2 text-sm">
             <div><dt className="text-muted">Nombre</dt><dd className="font-medium">{app.guardian.fullName} ({relationshipLabel[app.guardian.relationship]})</dd></div>
-            <div><dt className="text-muted">Cédula</dt><dd className="font-medium tabular-nums">{app.guardian.documentId}</dd></div>
+            <div><dt className="text-muted">Cédula</dt><dd className="font-medium tabular-nums">{app.guardian.documentId ?? app.guardian.code ?? "—"}</dd></div>
             <div><dt className="text-muted">Correo</dt><dd className="break-all font-medium">{app.guardian.email}</dd></div>
             <div><dt className="text-muted">Teléfono</dt><dd className="font-medium">{app.guardian.phone}</dd></div>
           </dl>

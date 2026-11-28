@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { ArrowUp, RotateCcw, Square } from "lucide-react";
 import { ChatMessage } from "./ChatMessage";
 import { TypingIndicator } from "./TypingIndicator";
@@ -13,9 +13,37 @@ type Msg = { role: "user" | "assistant"; content: string };
 const MAX_TURNS = 20;
 const MAX_ASSISTANT_CHARS = 4000;
 
+/**
+ * UUID v4. `crypto.randomUUID` solo existe en contexto seguro (HTTPS o localhost); al abrir la app
+ * por IP de red local (http://192.168.x.y) no está, así que se arma con `getRandomValues`.
+ */
+function newSessionId(): string {
+  if (typeof crypto.randomUUID === "function") return crypto.randomUUID();
+  const b = crypto.getRandomValues(new Uint8Array(16));
+  b[6] = (b[6]! & 0x0f) | 0x40;
+  b[8] = (b[8]! & 0x3f) | 0x80;
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`;
+}
+
 const SUGGESTIONS = ["¿Qué requisitos necesito?", "¿Cuánto cuesta la pensión?", "¿Cómo consulto mi estado?", "¿Qué métodos de pago aceptan?"];
 
-export function ChatPanel({ greeting, sourceLabel }: { greeting: string; sourceLabel: string }) {
+export function ChatPanel({
+  greeting,
+  sourceLabel,
+  variant = "page",
+  onAssistantReply,
+}: {
+  greeting: string;
+  sourceLabel: string;
+  /** page: tarjeta de página completa (/asesor). embedded: ocupa el contenedor (burbuja flotante). */
+  variant?: "page" | "embedded";
+  /** Se llama cuando termina una respuesta (p. ej. para marcar «no leído» si el chat está minimizado). */
+  onAssistantReply?: () => void;
+}) {
+  const uid = useId();
+  const inputId = `${uid}-input`;
+  const helpId = `${uid}-help`;
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [streaming, setStreaming] = useState(false);
@@ -35,7 +63,7 @@ export function ChatPanel({ greeting, sourceLabel }: { greeting: string; sourceL
   async function send(text: string) {
     const content = text.trim();
     if (!content || streaming) return;
-    sessionRef.current ??= crypto.randomUUID();
+    sessionRef.current ??= newSessionId();
     abortRef.current?.abort();
     const history: Msg[] = [...messages.filter((m) => m.content.trim() !== ""), { role: "user", content }];
     setMessages(history);
@@ -73,6 +101,7 @@ export function ChatPanel({ greeting, sourceLabel }: { greeting: string; sourceL
         scrollToEnd();
       }
       setAnnouncement(acc.trim() ? `El asesor respondió: ${acc.trim()}` : "");
+      if (acc.trim()) onAssistantReply?.();
     } catch (e) {
       if (!(e instanceof DOMException && e.name === "AbortError")) {
         const msg = e instanceof Error ? e.message : "Error inesperado";
@@ -101,22 +130,22 @@ export function ChatPanel({ greeting, sourceLabel }: { greeting: string; sourceL
   }
 
   return (
-    <div className="glass flex h-[min(78dvh,52rem)] min-h-[28rem] flex-col overflow-hidden rounded-xl">
-      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
-        <p className="text-sm text-muted">{sourceLabel}</p>
+    <div className={cn("flex flex-col overflow-hidden", variant === "page" ? "glass h-[min(78dvh,52rem)] min-h-[28rem] rounded-xl" : "min-h-0 flex-1")}>
+      <div className={cn("flex items-center justify-between gap-3 border-b border-line", variant === "page" ? "px-4 py-3" : "min-h-12 px-4 py-1")}>
+        <p className={cn("text-muted", variant === "page" ? "text-sm" : "text-xs")}>{sourceLabel}</p>
         {messages.length > 0 && (
           <Button variant="ghost" size="sm" onClick={() => { abortRef.current?.abort(); abortRef.current = null; setStreaming(false); setWaiting(false); setMessages([]); setError(null); setAnnouncement(""); sessionRef.current = null; }}>
-            <RotateCcw aria-hidden className="size-4" /> Nueva conversación
+            <RotateCcw aria-hidden className="size-4" /> {variant === "page" ? "Nueva conversación" : <span className="whitespace-nowrap">Nueva<span className="sr-only"> conversación</span></span>}
           </Button>
         )}
       </div>
 
       <LiveRegion message={announcement} />
       {/* El log no se anuncia mientras llega cada fragmento; la respuesta completa se anuncia por LiveRegion. */}
-      <div ref={logRef} role="log" aria-live="off" aria-busy={streaming} aria-label="Conversación con el asesor" className="flex flex-1 flex-col gap-4 overflow-y-auto p-4 sm:p-6">
+      <div ref={logRef} role="log" aria-live="off" aria-busy={streaming} aria-label="Conversación con el asesor" className={cn("flex flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4", variant === "page" && "sm:p-6")}>
         <ChatMessage role="assistant" content={greeting} />
         {messages.length === 0 && (
-          <div className="flex flex-wrap gap-2 pl-12" aria-label="Preguntas sugeridas">
+          <div className={cn("flex flex-wrap gap-2", variant === "page" ? "pl-12" : "pl-0")} role="group" aria-label="Preguntas sugeridas">
             {SUGGESTIONS.map((s) => (
               <button key={s} type="button" onClick={() => void send(s)} className="glass-inset min-h-11 rounded-full px-4 text-sm font-medium hover:border-primary hover:text-primary">{s}</button>
             ))}
@@ -127,19 +156,19 @@ export function ChatPanel({ greeting, sourceLabel }: { greeting: string; sourceL
         {error && <p role="alert" className="rounded-lg border border-danger/40 p-3 text-sm text-danger">{error}</p>}
       </div>
 
-      <form onSubmit={(e) => { e.preventDefault(); void send(input); }} className="border-t border-line p-3 sm:p-4">
-        <label htmlFor="chat-input" className="sr-only">Escribe tu pregunta</label>
+      <form onSubmit={(e) => { e.preventDefault(); void send(input); }} className={cn("border-t border-line p-3", variant === "page" && "sm:p-4")}>
+        <label htmlFor={inputId} className="sr-only">Escribe tu pregunta</label>
         <div className="glass-inset flex items-end gap-2 rounded-xl p-2">
           <textarea
-            id="chat-input"
+            id={inputId}
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
             rows={1}
             maxLength={4000}
-            placeholder="Escribe tu pregunta… (Enter para enviar, Shift+Enter para nueva línea)"
-            aria-describedby="chat-help"
+            placeholder={variant === "page" ? "Escribe tu pregunta… (Enter para enviar, Shift+Enter para nueva línea)" : "Escribe tu pregunta…"}
+            aria-describedby={helpId}
             className="max-h-40 min-h-11 flex-1 resize-none bg-transparent px-2 py-2.5 placeholder:text-muted/80 focus-visible:outline-none"
           />
           {streaming ? (
@@ -148,7 +177,7 @@ export function ChatPanel({ greeting, sourceLabel }: { greeting: string; sourceL
             <Button type="submit" disabled={!input.trim()} aria-label="Enviar" className={cn("size-11 px-0")}><ArrowUp aria-hidden className="size-5" /></Button>
           )}
         </div>
-        <p id="chat-help" className="mt-2 text-xs text-muted">El asesor puede equivocarse. No compartas contraseñas ni datos de tarjetas.</p>
+        <p id={helpId} className="mt-2 text-xs text-muted">El asesor puede equivocarse. No compartas contraseñas ni datos de tarjetas.</p>
       </form>
     </div>
   );

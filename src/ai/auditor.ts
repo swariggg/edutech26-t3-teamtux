@@ -5,6 +5,7 @@ import type { Repository } from "@/data/repository";
 import { getLLM } from "./llm";
 import { AUDITOR_SYSTEM } from "./prompts";
 import { runRules, rulesSummary } from "./auditor-rules";
+import { nowISO } from "@/lib/clock";
 
 /** Referencia legible sin PII: el código de seguimiento/matrícula si el título empieza con uno. */
 function codeRef(f: AuditFinding): string | null {
@@ -17,7 +18,7 @@ export async function runAudit(repo: Repository, scope: "todo" | "solicitudes" |
   const snapshot = await repo.getAuditSnapshot();
   const rules = runRules(snapshot, scope);
   const llm = getLLM();
-  const base: AuditReport = { generatedAt: new Date().toISOString(), source: "reglas", summary: rulesSummary(rules), findings: rules };
+  const base: AuditReport = { generatedAt: nowISO(), source: "reglas", summary: rulesSummary(rules), findings: rules };
   if (llm.source !== "anthropic") return base;
 
   // Resumen compacto SIN datos personales: solo ids, códigos, estados, fechas y montos.
@@ -46,7 +47,7 @@ export async function runAudit(repo: Repository, scope: "todo" | "solicitudes" |
     });
     const order = { alta: 0, media: 1, baja: 2 } as const;
     return {
-      generatedAt: new Date().toISOString(),
+      generatedAt: nowISO(),
       source: "ia",
       summary: out.summary,
       findings: [...merged.values()].sort((a, b) => order[a.severity] - order[b.severity]),

@@ -11,7 +11,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "db:seed": "node scripts/build-seed-sql.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "1.14.0",

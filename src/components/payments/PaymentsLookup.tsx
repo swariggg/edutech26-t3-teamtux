@@ -45,11 +45,11 @@ export function PaymentsLookup() {
     <div className="flex flex-col gap-6">
       <GlassCard as="section" className="p-5 sm:p-6" aria-label="Buscar pagos">
         <form onSubmit={onSubmit} className="grid gap-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-          <Field id="studentQuery" label="Cédula o código de matrícula del estudiante" required hint="Ejemplo: 0910000000 o MAT-2026-0001">
+          <Field id="studentQuery" label="Código del estudiante o de matrícula" required hint="Ejemplo: EST-001 o MAT-2025-0001 (también acepta la cédula)">
             <Input id="studentQuery" value={q} onChange={(e) => setQ(e.target.value)} required autoComplete="off" aria-describedby="studentQuery-hint" />
           </Field>
-          <Field id="guardianDocumentPay" label="Cédula del representante" required hint="10 dígitos">
-            <Input id="guardianDocumentPay" value={doc} onChange={(e) => setDoc(e.target.value)} required inputMode="numeric" autoComplete="off" aria-describedby="guardianDocumentPay-hint" />
+          <Field id="guardianDocumentPay" label="Código o cédula del representante" required hint="Ejemplo: REP-001">
+            <Input id="guardianDocumentPay" value={doc} onChange={(e) => setDoc(e.target.value)} required autoComplete="off" aria-describedby="guardianDocumentPay-hint" />
           </Field>
           <Button type="submit" disabled={loading} aria-busy={loading} className="sm:mb-7"><Search aria-hidden className="size-4" /> {loading ? "Buscando…" : "Consultar"}</Button>
         </form>

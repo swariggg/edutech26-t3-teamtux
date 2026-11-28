@@ -13,6 +13,8 @@ export const institution = {
   address: "Av. de los Ocho Saberes 808, Ciudad Aurora",
   locale: "es-EC",
   currency: "USD",
+  // Año lectivo en curso (estudiantes y pensiones del dataset ficticio) y año al que se postula.
+  currentYear: "2025-2026",
   academicYear: "2026-2027",
   contact: {
     secretaria: { email: "secretaria@ejemplo.com", phone: "+593 2 000 0808", whatsapp: "+593 99 000 0808" },
@@ -20,15 +22,6 @@ export const institution = {
     schedule: "Lunes a viernes, 07:30 – 16:00",
   },
   grades: [
-    { id: "inicial_1", label: "Inicial 1", level: "Inicial" },
-    { id: "inicial_2", label: "Inicial 2", level: "Inicial" },
-    { id: "primero_egb", label: "1.º EGB", level: "Educación General Básica" },
-    { id: "segundo_egb", label: "2.º EGB", level: "Educación General Básica" },
-    { id: "tercero_egb", label: "3.º EGB", level: "Educación General Básica" },
-    { id: "cuarto_egb", label: "4.º EGB", level: "Educación General Básica" },
-    { id: "quinto_egb", label: "5.º EGB", level: "Educación General Básica" },
-    { id: "sexto_egb", label: "6.º EGB", level: "Educación General Básica" },
-    { id: "septimo_egb", label: "7.º EGB", level: "Educación General Básica" },
     { id: "octavo_egb", label: "8.º EGB", level: "Educación General Básica" },
     { id: "noveno_egb", label: "9.º EGB", level: "Educación General Básica" },
     { id: "decimo_egb", label: "10.º EGB", level: "Educación General Básica" },
@@ -38,14 +31,14 @@ export const institution = {
   ] as { id: Grade; label: string; level: string }[],
   fees: {
     enrollment: 150,
-    monthly: 220,
+    monthly: 185,
     months: 10,
     firstMonth: "septiembre",
     lastMonth: "junio",
-    dueDay: 5,
+    dueDay: 10,
     lateFeePolicy:
-      "Desde el día 6 de cada mes la pensión se considera vencida. Tras 30 días de mora se contacta a la familia para acordar un plan de pagos; no se cobran intereses durante los primeros 15 días.",
-    discounts: "10% de descuento en la pensión a partir del segundo hermano matriculado.",
+      "Desde el día 11 de cada mes la pensión se considera vencida. Tras 30 días de mora se contacta a la familia para acordar un plan de pagos; no se cobran intereses durante los primeros 15 días.",
+    discounts: "Becas de 10%, 25% o 50% sobre la pensión, asignadas por evaluación socioeconómica o mérito académico.",
   },
   paymentMethods: [
     { id: "transferencia", label: "Transferencia bancaria", detail: "Banco Ficticio, cuenta corriente 000-808080-8" },
@@ -75,11 +68,11 @@ export const institution = {
   ],
   faq: [
     { q: "¿Cuáles son los requisitos de admisión?", a: "Cédulas del estudiante y del representante, partida de nacimiento, certificado de notas del año anterior y una foto tamaño carné. El certificado médico es opcional." },
-    { q: "¿Cuánto cuesta la matrícula y la pensión?", a: "La matrícula cuesta USD 150 y la pensión mensual USD 220, durante 10 meses (septiembre a junio)." },
+    { q: "¿Cuánto cuesta la matrícula y la pensión?", a: "La matrícula cuesta USD 150 y la pensión mensual USD 185, durante 10 meses (septiembre a junio)." },
     { q: "¿Cómo consulto el estado de mi solicitud?", a: "En la sección «Estado» con tu código de seguimiento (por ejemplo ADM-2026-0001) y la cédula del representante." },
-    { q: "¿Hasta qué fecha puedo pagar la pensión?", a: "Hasta el día 5 de cada mes. Desde el día 6 se considera vencida." },
+    { q: "¿Hasta qué fecha puedo pagar la pensión?", a: "Hasta el día 10 de cada mes. Desde el día 11 se considera vencida." },
     { q: "¿Qué métodos de pago aceptan?", a: "Transferencia, depósito, tarjeta en colecturía y efectivo en colecturía." },
-    { q: "¿Hay descuento por hermanos?", a: "Sí, 10% en la pensión a partir del segundo hermano matriculado." },
+    { q: "¿Ofrecen becas?", a: "Sí, becas de 10%, 25% o 50% sobre la pensión. Se solicitan en secretaría con la documentación socioeconómica o el récord académico." },
     { q: "¿Qué pasa si me atraso en un pago?", a: "Tras 30 días de mora colecturía te contactará para acordar un plan de pagos. Durante los primeros 15 días no hay intereses." },
     { q: "¿Puedo hablar con una persona?", a: "Claro. Secretaría atiende de lunes a viernes de 07:30 a 16:00 en secretaria@ejemplo.com o al +593 2 000 0808." },
   ],
@@ -94,7 +87,7 @@ export function toPromptContext(): string {
   const i = institution;
   const lines = [
     `Institución: ${i.name} (${i.city}). Dirección: ${i.address}.`,
-    `Año lectivo vigente: ${i.academicYear}. Moneda: ${i.currency}.`,
+    `Año lectivo en curso: ${i.currentYear}. Admisiones abiertas para el año ${i.academicYear}. Moneda: ${i.currency}.`,
     `Contacto secretaría: ${i.contact.secretaria.email}, ${i.contact.secretaria.phone}, WhatsApp ${i.contact.secretaria.whatsapp}. Colecturía: ${i.contact.colecturia.email}, ${i.contact.colecturia.phone}. Horario: ${i.contact.schedule}.`,
     `Niveles y grados: ${i.grades.map((g) => g.label).join(", ")}.`,
     `Costos: matrícula USD ${i.fees.enrollment}; pensión USD ${i.fees.monthly} x ${i.fees.months} meses (${i.fees.firstMonth} a ${i.fees.lastMonth}); vencimiento el día ${i.fees.dueDay} de cada mes.`,

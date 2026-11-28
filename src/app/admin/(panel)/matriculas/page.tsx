@@ -21,7 +21,7 @@ export default async function MatriculasPage({ searchParams }: { searchParams: P
     <>
       <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-semibold">Matrículas</h1>
-        <p className="text-muted">{rows.length} resultado(s) · Año {institution.academicYear}</p>
+        <p className="text-muted">{rows.length} resultado(s) · En curso {institution.currentYear} · Reservas {institution.academicYear}</p>
       </div>
       <FilterBar
         action="/admin/matriculas"

@@ -4,13 +4,13 @@ import path from "node:path";
 import type { FeatureVector, PaymentClass } from "./inference";
 
 /**
- * Ingeniería de variables a partir de data/dataset-ficticio-colegio (datos sintéticos).
+ * Ingeniería de variables a partir de dataset-ficticio-colegio/ (datos sintéticos).
  * Reproduce el entrenamiento: una fila = un representante (familia) en un mes objetivo;
  * el historial son los meses previos. Verificado: las medias/desviaciones del StandardScaler
  * coinciden exactamente con objetivos oct-2025 (historial sep) y nov-2025 (historial sep–oct).
  */
 
-const DATA_DIR = path.join(process.cwd(), "data", "dataset-ficticio-colegio");
+const DATA_DIR = path.join(process.cwd(), "dataset-ficticio-colegio");
 /** El entrenamiento tuvo 1–2 meses de historial; usar más extrapola fuera de lo visto por los modelos. */
 export const HISTORY_WINDOW = 2;
 const LATE_DAY = 10;

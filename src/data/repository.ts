@@ -3,6 +3,7 @@ import type {
   EnrollmentStatus, EnrollmentView, Grade, ID, Installment, InstallmentStatus, InstallmentView, PaymentMethod, Student,
 } from "@/domain/types";
 import type { ApplicationInput } from "@/domain/schemas";
+import { now as clockNow } from "@/lib/clock";
 
 export interface ListParams { search?: string; limit?: number; offset?: number }
 
@@ -17,6 +18,8 @@ export interface Repository {
   readonly kind: "mock" | "supabase";
   listApplications(p?: ListParams & { status?: ApplicationStatus; grade?: Grade }): Promise<ApplicationView[]>;
   getApplication(id: ID): Promise<ApplicationView | null>;
+  /** Solicitudes de un representante por su cédula (uso interno: reenvío del código al correo registrado). */
+  listApplicationsByGuardianDocument(guardianDocumentId: string): Promise<ApplicationView[]>;
   findApplicationByTracking(trackingCode: string, guardianDocumentId: string): Promise<ApplicationView | null>;
   /** Búsqueda directa por código (uso interno: webhooks). No validar identidad con esto. */
   findApplicationByCode(trackingCode: string): Promise<ApplicationView | null>;
@@ -53,19 +56,26 @@ export class ConflictError extends Error {
   }
 }
 
+/**
+ * Comparación por nombre y no con instanceof: en desarrollo el repositorio simulado vive en globalThis y sobrevive
+ * a la recarga en caliente, pero las clases se recrean, así que instanceof falla y el error terminaba en un 500.
+ */
+export const isConflictError = (e: unknown): e is ConflictError => e instanceof Error && e.name === "ConflictError";
+export const isNotFoundError = (e: unknown): e is NotFoundError => e instanceof Error && e.name === "NotFoundError";
+
 export const APPLICATION_CONFLICT_MSG =
   "No pudimos registrar la solicitud con esos datos. Si ya enviaste una solicitud para este estudiante, consulta su estado o escribe a secretaría.";
 export const INSTALLMENT_CLOSED_MSG = "La cuota está anulada o ya fue pagada.";
 
 /** Código de seguimiento aleatorio (sin caracteres ambiguos). Formato: ADM-2026-K7P2QX. */
-export function newTrackingCode(year = new Date().getUTCFullYear()): string {
+export function newTrackingCode(year = clockNow().getUTCFullYear()): string {
   const alphabet = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   const bytes = crypto.getRandomValues(new Uint8Array(6));
   return `ADM-${year}-${[...bytes].map((b) => alphabet[b % alphabet.length]).join("")}`;
 }
 
 /** Una cuota pendiente cuya fecha ya pasó se considera vencida (derivado al leer). */
-export function effectiveInstallmentStatus(i: Pick<Installment, "status" | "dueDate">, now = new Date()): InstallmentStatus {
+export function effectiveInstallmentStatus(i: Pick<Installment, "status" | "dueDate">, now = clockNow()): InstallmentStatus {
   if ((i.status === "pendiente" || i.status === "parcial") && new Date(i.dueDate) < startOfDay(now)) return "vencida";
   return i.status;
 }

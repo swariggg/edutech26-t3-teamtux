@@ -14,6 +14,7 @@ const EnvSchema = z.object({
   ANTHROPIC_MODEL: optional,
   N8N_WEBHOOK_SECRET: optional,
   N8N_OUTBOUND_WEBHOOK_URL: optional,
+  APP_URL: optional,
   NODE_ENV: optional,
 });
 
@@ -30,6 +31,8 @@ export const env = {
   anthropicModel: raw.ANTHROPIC_MODEL ?? DEFAULT_MODEL,
   n8nWebhookSecret: raw.N8N_WEBHOOK_SECRET,
   n8nOutboundUrl: raw.N8N_OUTBOUND_WEBHOOK_URL,
+  /** URL pública de la app para enlaces en correos (si falta, se usa el origen de la petición). */
+  appUrl: raw.APP_URL?.replace(/\/+$/, ""),
   isProd: raw.NODE_ENV === "production",
 };
 
