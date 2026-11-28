@@ -16,3 +16,19 @@ npm-debug.log*
 pnpm-debug.log*
 .playwright-cli/
 .vercel
+# llaves y certificados
+*.pem
+*.key
+# supabase CLI (temporales)
+supabase/.temp/
+supabase/.branches/
+# n8n: datos locales y exportaciones de credenciales (los workflows sí se suben)
+.n8n/
+n8n_data/
+credentials*.json
+# logs y pruebas
+*.log
+coverage/
+# windows
+Thumbs.db
+desktop.ini
