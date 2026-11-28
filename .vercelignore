@@ -1,0 +1,14 @@
+# Nunca subir secretos ni artefactos locales al desplegar con la CLI de Vercel.
+.env
+.env.*
+!.env.example
+node_modules
+.next
+.git
+*.log
+.~lock.*#
+# Material de trabajo que la app no necesita en producción
+Modelos/*.zip
+Modelos/*.joblib
+data/*.zip
+supabase/seed

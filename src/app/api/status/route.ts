@@ -46,6 +46,9 @@ export async function POST(req: Request) {
     // Sin notas: el historial puede tener notas internas del personal o de n8n.
     history: app.history.map((h) => ({ status: h.status, at: h.at })),
     missingDocuments: app.documents.filter((d) => !d.received).map((d) => d.kind),
-    nextSteps: NEXT_STEPS[app.status],
+    // Con la matrícula ya pagada (activa) no tiene sentido pedir que pague la matrícula.
+    nextSteps: enrollment?.status === "activa"
+      ? "¡Tu matrícula está activa! Consulta tus pensiones y tu récord de puntualidad en Pagos con tu código de matrícula y tu cédula."
+      : NEXT_STEPS[app.status],
   }, { headers: { "Cache-Control": "no-store" } });
 }
