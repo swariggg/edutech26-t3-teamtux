@@ -1,22 +1,23 @@
 import "server-only";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import type { FeatureVector, PaymentClass } from "./inference";
+import { getRepository } from "@/data";
+import { gradeLabel, institution } from "@/content/institution";
+import { nowISO } from "@/lib/clock";
 
 /**
- * Ingeniería de variables a partir de dataset-ficticio-colegio (datos sintéticos).
- * Reproduce el entrenamiento: una fila = un representante (familia) en un mes objetivo;
- * el historial son los meses previos. Verificado: las medias/desviaciones del StandardScaler
- * coinciden exactamente con objetivos oct-2025 (historial sep) y nov-2025 (historial sep–oct).
+ * Ingeniería de variables a partir de la BASE DE DATOS de la app (Supabase o el modo demo, ambos sembrados
+ * desde dataset-ficticio-colegio): así los modelos ven los pagos reales registrados después de la carga
+ * (colecturía, n8n, pagos en línea). Reproduce el entrenamiento: una fila = un representante (familia) en un
+ * mes objetivo; el historial son los meses previos. Con los datos originales, las medias/desviaciones del
+ * StandardScaler coinciden exactamente con objetivos oct-2025 (historial sep) y nov-2025 (historial sep–oct).
+ * Solo usa el año lectivo en curso: las matrículas del año siguiente no tienen historial.
  */
 
-const DATA_DIR = path.join(process.cwd(), "dataset-ficticio-colegio");
 /** El entrenamiento tuvo 1–2 meses de historial; usar más extrapola fuera de lo visto por los modelos. */
 export const HISTORY_WINDOW = 2;
-const LATE_DAY = 10;
 
 export interface Student { codigo: string; nombre: string; curso: string; paralelo: string; beca: number; representante: string }
-interface Pension { estudiante: string; mes: string; valor: number; estado: "pagado" | "vencido" | "por_vencer"; fechaPago: string }
+interface Pension { estudiante: string; mes: string; valor: number; estado: "pagado" | "vencido" | "por_vencer"; dueDate: string; fechaPago: string }
 
 export interface FamilyMonth {
   representante: string;
@@ -26,47 +27,68 @@ export interface FamilyMonth {
   real?: PaymentClass;
 }
 
-/** CSV simple (el dataset no tiene comas dentro de campos). Cada fila es un lector `col => valor` ("" si falta). */
-function parseCsv(text: string): ((col: string) => string)[] {
-  const [head = "", ...lines] = text.replace(/^﻿/, "").trim().split(/\r?\n/);
-  const cols = head.split(",");
-  return lines.map((l) => {
-    const v = l.split(",");
-    return (col: string) => v[cols.indexOf(col)] ?? "";
-  });
-}
-
+/** Puntual si se pagó hasta el vencimiento (día 10), tardío si después, incumplimiento si venció sin pagar. */
 function outcome(p: Pension): PaymentClass | undefined {
   if (p.estado === "vencido") return "incumplimiento";
-  if (p.estado === "pagado") return Number(p.fechaPago.slice(8, 10)) > LATE_DAY ? "tardio" : "puntual";
+  if (p.estado === "pagado") return p.fechaPago > p.dueDate ? "tardio" : "puntual";
   return undefined;
 }
 
 const SEVERITY: Record<PaymentClass, number> = { puntual: 0, tardio: 1, incumplimiento: 2 };
 
-export interface Dataset { students: Student[]; months: string[]; closedMonths: string[]; openMonth?: string; byFamily: Map<string, { students: Student[]; pensions: Pension[] }> }
+export interface Dataset {
+  students: Student[]; months: string[]; closedMonths: string[]; openMonth?: string;
+  byFamily: Map<string, { students: Student[]; pensions: Pension[] }>;
+  /** Fecha de corte (fecha de la app) y año lectivo usados. */
+  asOf: string; academicYear: string;
+}
 
-let cache: Promise<Dataset> | undefined;
-
-export function loadDataset(): Promise<Dataset> {
-  cache ??= (async () => {
-    const [est, pen] = await Promise.all([readFile(path.join(DATA_DIR, "estudiantes.csv"), "utf8"), readFile(path.join(DATA_DIR, "pensiones.csv"), "utf8")]);
-    const students: Student[] = parseCsv(est).map((r) => ({ codigo: r("codigo"), nombre: r("nombre_ficticio"), curso: r("curso"), paralelo: r("paralelo"), beca: Number(r("beca_porcentaje")), representante: r("representante_codigo") }));
-    const repOf = new Map(students.map((s) => [s.codigo, s.representante]));
-    const pensions: Pension[] = parseCsv(pen).map((r) => ({ estudiante: r("codigo_estudiante"), mes: r("mes"), valor: Number(r("valor")), estado: r("estado") as Pension["estado"], fechaPago: r("fecha_pago") }));
-    const byFamily = new Map<string, { students: Student[]; pensions: Pension[] }>();
-    for (const s of students) {
-      const f = byFamily.get(s.representante) ?? { students: [], pensions: [] };
-      f.students.push(s);
-      byFamily.set(s.representante, f);
-    }
-    for (const p of pensions) byFamily.get(repOf.get(p.estudiante) ?? "")?.pensions.push(p);
-    const months = [...new Set(pensions.map((p) => p.mes))].sort();
-    const closedMonths = months.filter((m) => pensions.some((p) => p.mes === m && p.estado !== "por_vencer"));
-    const openMonth = months.find((m) => !closedMonths.includes(m));
-    return { students, months, closedMonths, openMonth, byFamily };
-  })();
-  return cache;
+/** Lee matrículas y pensiones del año en curso desde el repositorio (sin caché: refleja cada pago nuevo). */
+export async function loadDataset(): Promise<Dataset> {
+  const repo = getRepository();
+  const academicYear = institution.currentYear;
+  const today = nowISO().slice(0, 10);
+  const [enrollments, installments] = await Promise.all([
+    repo.listEnrollments({ academicYear, limit: 100_000 }),
+    repo.listInstallments({ limit: 100_000 }),
+  ]);
+  const active = enrollments.filter((e) => e.status !== "anulada" && e.status !== "retirada");
+  const students: Student[] = active.map((e) => ({
+    codigo: e.studentCode ?? e.code,
+    nombre: e.studentName,
+    curso: gradeLabel(e.grade),
+    paralelo: e.section ?? "",
+    beca: e.scholarshipPct ?? 0,
+    representante: e.guardianKey ?? e.studentId,
+  }));
+  const studentOf = new Map(active.map((e, i) => [e.id, students[i]!]));
+  const byFamily = new Map<string, { students: Student[]; pensions: Pension[] }>();
+  for (const s of students) {
+    const f = byFamily.get(s.representante) ?? { students: [], pensions: [] };
+    f.students.push(s);
+    byFamily.set(s.representante, f);
+  }
+  const months = new Set<string>();
+  for (const i of installments) {
+    const st = studentOf.get(i.enrollmentId);
+    if (!st || i.concept !== "pension" || i.status === "anulada") continue;
+    months.add(i.period);
+    byFamily.get(st.representante)!.pensions.push({
+      estudiante: st.codigo,
+      mes: i.period,
+      valor: i.amount,
+      // El estado ya viene «efectivo»: una cuota pendiente cuyo vencimiento pasó llega como «vencida».
+      estado: i.status === "pagada" ? "pagado" : i.status === "vencida" ? "vencido" : "por_vencer",
+      dueDate: i.dueDate.slice(0, 10),
+      fechaPago: i.paidAt?.slice(0, 10) ?? "",
+    });
+  }
+  const sorted = [...months].sort();
+  // Un mes está cerrado cuando ya pasó su vencimiento (aunque alguien haya pagado por adelantado uno futuro).
+  const dueOf = (m: string) => `${m}-${String(institution.fees.dueDay).padStart(2, "0")}`;
+  const closedMonths = sorted.filter((m) => dueOf(m) < today);
+  const openMonth = sorted.find((m) => !closedMonths.includes(m));
+  return { students, months: sorted, closedMonths, openMonth, byFamily, asOf: today, academicYear };
 }
 
 /** Variables de cada familia para un mes objetivo, con historial = los `window` meses previos. */

@@ -1,8 +1,9 @@
 "use client";
 import { useRef, useState } from "react";
-import { Search } from "lucide-react";
+import { CreditCard, Search } from "lucide-react";
+import Link from "next/link";
 import { Field, Input, describedBy } from "@/components/ui/Field";
-import { Button } from "@/components/ui/Button";
+import { Button, buttonClass } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Alert } from "@/components/ui/Alert";
 import { Badge } from "@/components/ui/Badge";
@@ -20,6 +21,7 @@ export interface PublicStatus {
   history: { status: ApplicationStatus; at: string; note?: string }[];
   missingDocuments: DocumentKind[];
   nextSteps: string;
+  enrollmentCode?: string;
 }
 
 export function StatusLookup({ initialCode = "" }: { initialCode?: string }) {
@@ -71,6 +73,18 @@ export function StatusLookup({ initialCode = "" }: { initialCode?: string }) {
               <Badge tone={applicationStatusMeta[result.status].tone}>{applicationStatusMeta[result.status].label}</Badge>
             </div>
             <Alert tone="info" title="Próximo paso">{result.nextSteps}{result.interviewAt && ` Entrevista: ${formatDateTime(result.interviewAt)}.`}</Alert>
+            {result.enrollmentCode && (
+              <GlassCard className="flex flex-wrap items-center justify-between gap-4 p-5">
+                <div>
+                  <p className="text-sm text-muted">Código de matrícula</p>
+                  <p className="font-mono text-2xl font-semibold tracking-wide">{result.enrollmentCode}</p>
+                  <p className="text-sm text-muted">Úsalo con tu cédula en Pagos para ver tus cuotas y tu récord de puntualidad.</p>
+                </div>
+                <Link href={`/pagos?estudiante=${encodeURIComponent(result.enrollmentCode)}`} className={buttonClass("primary", "md")}>
+                  <CreditCard aria-hidden className="size-4" /> Ver mis pagos
+                </Link>
+              </GlassCard>
+            )}
             <div className="grid gap-6 md:grid-cols-2">
               <section aria-labelledby="hist-title">
                 <h3 id="hist-title" className="mb-3 font-semibold">Historial</h3>

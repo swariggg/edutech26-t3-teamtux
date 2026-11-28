@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { Bot, User } from "lucide-react";
+import { User } from "lucide-react";
+import { ClipoIcon } from "@/components/brand/Brand";
+import { institution } from "@/content/institution";
 import { cn } from "@/lib/cn";
 
 const ROUTE = /(\*\*[^*]+\*\*|\/(?:admision|estado|pagos|asesor)\b)/g;
@@ -38,10 +40,10 @@ export function ChatMessage({ role, content }: { role: "user" | "assistant"; con
   return (
     <div className={cn("flex gap-3", isUser && "flex-row-reverse")}>
       <span aria-hidden className={cn("inline-flex size-9 shrink-0 items-center justify-center rounded-full", isUser ? "bg-primary text-on-primary" : "bg-accent/15 text-accent")}>
-        {isUser ? <User className="size-5" /> : <Bot className="size-5" />}
+        {isUser ? <User className="size-5" /> : <ClipoIcon className="size-6" />}
       </span>
       <div className={cn("max-w-[85%] rounded-xl px-4 py-3 leading-relaxed", isUser ? "bg-primary text-on-primary" : "glass glass-strong")}>
-        <p className="sr-only">{isUser ? "Tú dijiste:" : "El asesor respondió:"}</p>
+        <p className="sr-only">{isUser ? "Tú dijiste:" : `${institution.assistant.name} respondió:`}</p>
         {isUser ? <p className="whitespace-pre-wrap">{content}</p> : renderMarkdown(content)}
       </div>
     </div>

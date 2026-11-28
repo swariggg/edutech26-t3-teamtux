@@ -14,7 +14,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <PublicFooter />
       {/* Asesor IA flotante en todas las páginas públicas (la conversación persiste al navegar). */}
       <ChatWidget
-        greeting={`¡Hola! Soy el asesor virtual de ${institution.name}. ¿En qué te ayudo hoy?`}
+        greeting={institution.assistant.greeting}
         sourceLabel={hasLLM ? "Respuestas generadas con IA (Claude)" : "Modo demostración: respuestas simuladas"}
       />
     </>

@@ -52,6 +52,20 @@ export const PaymentsLookupInput = z.object({
     .regex(/^(\d{10}|REP-\d{3,4})$/, "Ingresa el código del representante (REP-001) o su cédula (10 dígitos)"),
 });
 
+/** Pago en línea (demostración) de una cuota por la familia: vuelve a validar estudiante + representante. */
+export const PayOnlineInput = PaymentsLookupInput.extend({
+  installmentId: z.string().trim().min(1).max(64),
+  /** Generado por el navegador en cada intento: repetir el envío no cobra dos veces. */
+  idempotencyKey: z.uuid(),
+  /** Demo del récord: «atrasado» registra el pago con fecha posterior al vencimiento (solo pensiones). */
+  mode: z.enum(["puntual", "atrasado"]).default("puntual"),
+});
+
+/** Deshacer un pago de demostración de una pensión (vuelve a «sin pagar»). */
+export const UndoDemoPaymentInput = PaymentsLookupInput.extend({
+  installmentId: z.string().trim().min(1).max(64),
+});
+
 /** Límites del chat público (abuso de costo): el servidor además recorta a CHAT_MAX_TURNS y CHAT_MAX_TOTAL_CHARS. */
 export const CHAT_MAX_TURNS = 20;
 export const CHAT_MAX_TOTAL_CHARS = 12_000;
@@ -112,7 +126,7 @@ export const AuditReportLLM = z.object({
   findings: z.array(
     z.object({
       severity: z.enum(["alta", "media", "baja"]),
-      category: z.enum(["estancada", "documentos", "inconsistencia", "mora", "datos"]),
+      category: z.enum(["estancada", "documentos", "inconsistencia", "mora", "datos", "riesgo_pago", "oportunidad"]),
       title: z.string(),
       detail: z.string(),
       entity: z.enum(["application", "enrollment", "installment", "system", "chat"]),
@@ -122,3 +136,52 @@ export const AuditReportLLM = z.object({
   ),
 });
 export type AuditReportLLM = z.infer<typeof AuditReportLLM>;
+
+// ===== Documentos de admisión =====
+export const DOC_MAX_BYTES = 5 * 1024 * 1024;
+export const DOC_MIME_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/webp"] as const;
+
+export const UploadUrlInput = z.object({
+  token: z.string().min(20).max(600),
+  kind: z.enum(docIds),
+  fileName: z.string().trim().min(1).max(160),
+  mimeType: z.enum(DOC_MIME_TYPES, { message: "Formato no permitido: usa PDF, JPG, PNG o WEBP" }),
+  size: z.number().int().positive().max(DOC_MAX_BYTES, "El archivo supera 5 MB"),
+});
+export const UploadCompleteInput = z.object({
+  token: z.string().min(20).max(600),
+  kind: z.enum(docIds),
+  path: z.string().min(5).max(300),
+  fileName: z.string().trim().min(1).max(160),
+});
+export const UploadFinishInput = z.object({ token: z.string().min(20).max(600) });
+
+/** Salida estructurada de la revisión de documentos (lo que devuelve el modelo). */
+export const DocumentReviewLLM = z.object({
+  summary: z.string(),
+  documents: z.array(z.object({
+    kind: z.enum(docIds),
+    status: z.enum(["ok", "observado", "ilegible", "no_corresponde"]),
+    issues: z.array(z.string()),
+  })),
+  inconsistencies: z.array(z.object({
+    severity: z.enum(["alta", "media", "baja"]),
+    title: z.string(),
+    detail: z.string(),
+    documents: z.array(z.enum(docIds)),
+  })),
+  financial: z.object({
+    analyzed: z.boolean(),
+    holderMatchesGuardian: z.boolean().nullable(),
+    periodMonths: z.number().nullable(),
+    avgMonthlyIncome: z.number().nullable(),
+    avgMonthlyBalance: z.number().nullable(),
+    incomeRegularity: z.enum(["estable", "variable", "irregular", "desconocida"]),
+    negativeEvents: z.array(z.string()),
+    signals: z.array(z.string()),
+    recommendation: z.string(),
+    scholarshipCandidate: z.boolean(),
+    scholarshipReason: z.string().nullable(),
+  }),
+});
+export type DocumentReviewLLM = z.infer<typeof DocumentReviewLLM>;

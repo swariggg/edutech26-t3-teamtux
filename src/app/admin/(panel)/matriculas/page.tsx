@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getRepository } from "@/data";
 import { FilterBar } from "@/components/admin/FilterBar";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -37,8 +38,8 @@ export default async function MatriculasPage({ searchParams }: { searchParams: P
           rows={rows}
           rowKey={(r) => r.id}
           columns={[
-            { key: "code", header: "Código", cell: (r) => <span className="font-semibold">{r.code}</span> },
-            { key: "student", header: "Estudiante", cell: (r) => r.studentName },
+            { key: "code", header: "Código", cell: (r) => <Link href={`/admin/matriculas/${r.id}`} className="font-semibold text-primary underline-offset-4 hover:underline">{r.code}</Link> },
+            { key: "student", header: "Estudiante", cell: (r) => <span className="flex flex-col"><span>{r.studentName}</span>{(r.studentDocumentId ?? r.studentCode) && <span className="text-sm text-muted">{r.studentDocumentId ?? r.studentCode}</span>}</span> },
             { key: "grade", header: "Grado", cell: (r) => `${gradeLabel(r.grade)}${r.section ? ` "${r.section}"` : ""}` },
             { key: "status", header: "Estado", cell: (r) => <Badge tone={enrollmentStatusMeta[r.status].tone}>{enrollmentStatusMeta[r.status].label}</Badge> },
             { key: "date", header: "Fecha", cell: (r) => formatDate(r.enrolledAt) },

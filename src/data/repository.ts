@@ -1,6 +1,6 @@
 import type {
   ApplicationStatus, ApplicationView, AuditEntity, AuditLog, ChatMessageRecord, DashboardStats, Enrollment,
-  EnrollmentStatus, EnrollmentView, Grade, ID, Installment, InstallmentStatus, InstallmentView, PaymentMethod, Student,
+  EnrollmentDetail, EnrollmentStatus, EnrollmentView, Grade, ID, Installment, InstallmentStatus, InstallmentView, PaymentMethod, Student, DocumentKind, StoredFile, DocumentReview,
 } from "@/domain/types";
 import type { ApplicationInput } from "@/domain/schemas";
 import { now as clockNow } from "@/lib/clock";
@@ -26,6 +26,20 @@ export interface Repository {
   /** Crea la solicitud en una sola transacción. Lanza ConflictError (genérico) si no se puede registrar. */
   createApplication(input: ApplicationInput): Promise<ApplicationView>;
   updateApplicationStatus(id: ID, status: ApplicationStatus, by: string, note?: string): Promise<ApplicationView>;
+  /** Marca el documento como recibido con la metadata del archivo subido (atómico). Lanza NotFoundError. */
+  attachDocument(applicationId: ID, kind: DocumentKind, file: StoredFile): Promise<void>;
+  /** Guarda la última revisión de documentos con IA. */
+  saveDocumentReview(applicationId: ID, review: DocumentReview): Promise<void>;
+  /**
+   * Matricula una solicitud APROBADA: crea la matrícula (pendiente de pago), la cuota de matrícula y las pensiones
+   * del año, en una sola transacción, y deja rastro en la bitácora. Idempotente: si ya existe, la devuelve con
+   * `created: false`. Lanza NotFoundError si la solicitud no existe y ConflictError si no está aprobada.
+   */
+  enrollApplication(applicationId: ID, by: string): Promise<{ enrollment: Enrollment; created: boolean }>;
+  /** Ficha completa de una matrícula (o null). */
+  getEnrollmentDetail(id: ID): Promise<EnrollmentDetail | null>;
+  /** Matrícula creada a partir de una solicitud (o null). */
+  getEnrollmentByApplication(applicationId: ID): Promise<Enrollment | null>;
   listEnrollments(p?: ListParams & { status?: EnrollmentStatus; grade?: Grade; academicYear?: string }): Promise<EnrollmentView[]>;
   listInstallments(p?: ListParams & { status?: InstallmentStatus; period?: string; studentId?: ID }): Promise<InstallmentView[]>;
   findPaymentsForFamily(studentDocumentOrCode: string, guardianDocumentId: string): Promise<{ student: Student; enrollment: Enrollment; installments: Installment[] } | null>;
@@ -33,7 +47,12 @@ export interface Repository {
    * Registra un pago (atómico; escribe la bitácora). Idempotente por referencia: repetir la misma referencia
    * devuelve `applied: false` sin volver a sumar. Lanza ConflictError si la cuota está anulada o ya pagada.
    */
-  registerPayment(id: ID, data: { amount: number; method: PaymentMethod; reference?: string; by: string }): Promise<{ installment: Installment; applied: boolean }>;
+  registerPayment(id: ID, data: { amount: number; method: PaymentMethod; reference?: string; by: string; paidAt?: string }): Promise<{ installment: Installment; applied: boolean }>;
+  /**
+   * Solo demostración: deshace un pago de DEMO (referencia «DEMO-…») de una pensión y la deja sin pagar.
+   * Lanza ConflictError si no es un pago de demo y NotFoundError si la cuota no existe.
+   */
+  undoDemoPayment(id: ID, by: string): Promise<Installment>;
   listAuditLogs(p?: ListParams & { entity?: AuditEntity }): Promise<AuditLog[]>;
   addAuditLog(entry: Omit<AuditLog, "id" | "at">): Promise<AuditLog>;
   getDashboardStats(): Promise<DashboardStats>;

@@ -34,6 +34,7 @@ export const documentLabel: Record<DocumentKind, string> = {
   certificado_notas: "Certificado de notas",
   foto: "Foto tamaño carné",
   certificado_medico: "Certificado médico",
+  estado_cuenta: "Estado de cuenta bancario",
 };
 export const relationshipLabel: Record<Relationship, string> = { madre: "Madre", padre: "Padre", tutor: "Tutor/a legal", otro: "Otro" };
 export const severityMeta: Record<FindingSeverity, { label: string; tone: Tone }> = {
@@ -47,6 +48,8 @@ export const categoryLabel: Record<FindingCategory, string> = {
   inconsistencia: "Inconsistencia",
   mora: "Mora",
   datos: "Calidad de datos",
+  riesgo_pago: "Riesgo de pago",
+  oportunidad: "Beca / fidelización",
 };
 export const APPLICATION_STATUSES = Object.keys(applicationStatusMeta) as ApplicationStatus[];
 export const ENROLLMENT_STATUSES = Object.keys(enrollmentStatusMeta) as EnrollmentStatus[];

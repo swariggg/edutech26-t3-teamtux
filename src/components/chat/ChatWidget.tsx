@@ -2,7 +2,9 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bot, Maximize2, Minus, X } from "lucide-react";
+import { Maximize2, Minus, X } from "lucide-react";
+import { ClipoIcon } from "@/components/brand/Brand";
+import { institution } from "@/content/institution";
 import { ChatPanel } from "./ChatPanel";
 import { cn } from "@/lib/cn";
 
@@ -74,18 +76,18 @@ export function ChatWidget({ greeting, sourceLabel }: { greeting: string; source
         className="glass glass-strong advisor-pop pointer-events-auto flex h-[min(40rem,calc(100dvh-7rem))] w-[min(26rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl"
       >
         <header className="flex items-center gap-3 border-b border-line px-4 py-3">
-          <span aria-hidden className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">
-            <Bot className="size-5" />
+          <span aria-hidden className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/12 text-primary">
+            <ClipoIcon className="size-7" />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 id={titleId} className="truncate font-semibold">Asesor virtual</h2>
-            <p className="truncate text-xs text-muted">Admisiones, matrículas y pagos</p>
+            <h2 id={titleId} className="truncate font-semibold">{institution.assistant.name}</h2>
+            <p className="truncate text-xs text-muted">Asistente virtual de {institution.shortName} · admisiones, matrículas y pagos</p>
           </div>
           <Link
             href="/asesor"
             onClick={() => setOpen(false)}
             className="inline-flex size-11 items-center justify-center rounded-full text-muted hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
-            aria-label="Abrir el asesor en pantalla completa"
+            aria-label={`Abrir a ${institution.assistant.name} en pantalla completa`}
             title="Pantalla completa"
           >
             <Maximize2 aria-hidden className="size-4" />
@@ -94,7 +96,7 @@ export function ChatWidget({ greeting, sourceLabel }: { greeting: string; source
             type="button"
             onClick={hide}
             className="inline-flex size-11 items-center justify-center rounded-full text-muted hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10"
-            aria-label="Minimizar el asesor"
+            aria-label={`Minimizar a ${institution.assistant.name}`}
             title="Minimizar (Esc)"
           >
             <Minus aria-hidden className="size-5" />
@@ -110,13 +112,13 @@ export function ChatWidget({ greeting, sourceLabel }: { greeting: string; source
         onClick={() => (open ? hide() : show())}
         aria-expanded={open}
         aria-controls={panelId}
-        aria-label={open ? "Cerrar el asesor virtual" : unread ? "Abrir el asesor virtual (respuesta nueva)" : "Abrir el asesor virtual"}
+        aria-label={open ? `Cerrar a ${institution.assistant.name}` : unread ? `Abrir a ${institution.assistant.name}, tu asistente virtual (respuesta nueva)` : `Abrir a ${institution.assistant.name}, tu asistente virtual`}
         className={cn(
           "pointer-events-auto relative inline-flex size-14 items-center justify-center rounded-full bg-primary text-on-primary",
           "shadow-[0_10px_30px_-6px_color-mix(in_srgb,var(--primary)_55%,transparent)] transition-transform duration-200 hover:scale-105 active:scale-95",
         )}
       >
-        {open ? <X aria-hidden className="size-6" /> : <Bot aria-hidden className="size-7" />}
+        {open ? <X aria-hidden className="size-6" /> : <ClipoIcon className="size-9" />}
         {unread && !open && (
           <span aria-hidden className="absolute top-0.5 right-0.5 size-3.5 rounded-full border-2 border-[var(--bg)] bg-accent" />
         )}

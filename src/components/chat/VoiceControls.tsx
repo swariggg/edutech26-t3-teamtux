@@ -7,7 +7,7 @@ import type { VoiceState } from "./useVoiceConversation";
 const LABEL: Record<Exclude<VoiceState, "off">, string> = {
   listening: "Te escucho…",
   thinking: "Pensando…",
-  speaking: "El asesor está hablando",
+  speaking: "Clipo está hablando",
   paused: "En pausa. Toca el micrófono para hablar",
 };
 
@@ -29,7 +29,7 @@ export function VoiceControls({
 }) {
   const orbAction = state === "listening" ? onFinishSpeaking : onInterrupt;
   const orbLabel =
-    state === "listening" ? "Ya terminé de hablar" : state === "paused" ? "Hablar" : "Interrumpir al asesor y hablar";
+    state === "listening" ? "Ya terminé de hablar" : state === "paused" ? "Hablar" : "Interrumpir a Clipo y hablar";
 
   return (
     <div className={cn("flex items-center gap-3", compact ? "py-1" : "py-2")}>

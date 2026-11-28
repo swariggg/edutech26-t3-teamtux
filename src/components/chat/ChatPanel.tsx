@@ -1,4 +1,5 @@
 "use client";
+import { institution } from "@/content/institution";
 import { useEffect, useId, useRef, useState } from "react";
 import { ArrowUp, AudioLines, RotateCcw, Square } from "lucide-react";
 import { ChatMessage } from "./ChatMessage";
@@ -61,7 +62,7 @@ export function ChatPanel({
     abortRef.current?.abort();
     const history: Msg[] = [...messages.filter((m) => m.content.trim() !== ""), { role: "user", content }];
     setMessages(history);
-    setAnnouncement("El asesor está escribiendo…");
+    setAnnouncement(`${institution.assistant.name} está escribiendo…`);
     // Solo turnos no vacíos y recientes; las respuestas largas se recortan para no invalidar el pedido.
     const payload = history.slice(-MAX_TURNS).map((m) => (m.role === "assistant" ? { ...m, content: m.content.slice(0, MAX_ASSISTANT_CHARS) } : m));
     setInput("");
@@ -80,7 +81,7 @@ export function ChatPanel({
       });
       if (!res.ok || !res.body) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "No pudimos conectar con el asesor.");
+        throw new Error(data.error ?? `No pudimos conectar con ${institution.assistant.name}.`);
       }
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
@@ -95,7 +96,7 @@ export function ChatPanel({
         opts?.onDelta?.(acc);
         scrollToEnd();
       }
-      setAnnouncement(acc.trim() ? `El asesor respondió: ${acc.trim()}` : "");
+      setAnnouncement(acc.trim() ? `${institution.assistant.name} respondió: ${acc.trim()}` : "");
       if (acc.trim()) onAssistantReply?.();
       return acc;
     } catch (e) {
@@ -148,7 +149,7 @@ export function ChatPanel({
 
       <LiveRegion message={announcement} />
       {/* El log no se anuncia mientras llega cada fragmento; la respuesta completa se anuncia por LiveRegion. */}
-      <div ref={logRef} role="log" aria-live="off" aria-busy={streaming} aria-label="Conversación con el asesor" className={cn("flex flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4", variant === "page" && "sm:p-6")}>
+      <div ref={logRef} role="log" aria-live="off" aria-busy={streaming} aria-label={`Conversación con ${institution.assistant.name}`} className={cn("flex flex-1 flex-col gap-4 overflow-y-auto overscroll-contain p-4", variant === "page" && "sm:p-6")}>
         <ChatMessage role="assistant" content={greeting} />
         {messages.length === 0 && (
           <div className={cn("flex flex-wrap gap-2", variant === "page" ? "pl-12" : "pl-0")} role="group" aria-label="Preguntas sugeridas">
@@ -196,7 +197,7 @@ export function ChatPanel({
           ) : input.trim() ? (
             <Button type="submit" aria-label="Enviar" className="size-11 px-0"><ArrowUp aria-hidden className="size-5" /></Button>
           ) : (
-            <Button onClick={() => { voice.clearError(); voice.start(); }} aria-label="Conversar por voz con el asesor" title="Conversar por voz" className="size-11 px-0">
+            <Button onClick={() => { voice.clearError(); voice.start(); }} aria-label={`Conversar por voz con ${institution.assistant.name}`} title="Conversar por voz" className="size-11 px-0">
               <AudioLines aria-hidden className="size-5" />
             </Button>
           )}
@@ -205,7 +206,7 @@ export function ChatPanel({
         )}
         <p id={helpId} className="mt-2 text-xs text-muted">{voiceOn
             ? "Conversación por voz: tu navegador reconoce lo que dices y lee las respuestas. No dictes cédulas ni datos personales."
-            : "El asesor puede equivocarse. No compartas contraseñas ni datos de tarjetas."}</p>
+            : `${institution.assistant.name} puede equivocarse. No compartas contraseñas ni datos de tarjetas.`}</p>
       </form>
     </div>
   );

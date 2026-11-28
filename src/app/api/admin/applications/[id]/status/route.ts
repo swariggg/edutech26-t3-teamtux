@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { StatusChangeInput } from "@/domain/schemas";
 import { getRepository } from "@/data";
 import { isNotFoundError } from "@/data/repository";
 import type { ApplicationStatus } from "@/domain/types";
 import { logAudit } from "@/lib/audit";
 import { emitEvent } from "@/lib/n8n";
+import { notifyEnrollment, publicBaseUrl } from "@/lib/notifications";
 import { isAdminRequest } from "@/lib/session";
 import { jsonError, parseBody } from "@/lib/http";
 
@@ -23,7 +24,25 @@ export async function PATCH(req: Request, ctx: RouteContext<"/api/admin/applicat
     const app = await repo.updateApplicationStatus(id, status, "secretaria", parsed.data.note);
     await logAudit(repo, { actor: "secretaria", action: "application.status_changed", entity: "application", entityId: id, details: { trackingCode: app.trackingCode, from: before.status, to: status, note: parsed.data.note } });
     void emitEvent("application.status_changed", { applicationId: id, trackingCode: app.trackingCode, from: before.status, to: status });
-    return NextResponse.json({ ok: true, status: app.status });
+    // Aprobada → matrícula automática (idempotente) con su cuota de matrícula y las pensiones del año, y aviso a la familia.
+    let enrollmentCode: string | undefined;
+    let enrollmentCreated = false;
+    if (status === "aprobada") {
+      try {
+        const { enrollment, created } = await repo.enrollApplication(id, "secretaria");
+        enrollmentCode = enrollment.code;
+        enrollmentCreated = created;
+        if (created) {
+          const baseUrl = publicBaseUrl(req);
+          after(() => notifyEnrollment(repo, app, enrollment, baseUrl));
+        }
+      } catch (error) {
+        // El estado ya quedó en «aprobada»: volver a guardar «aprobada» reintenta la matrícula.
+        console.error("[admin/status] matrícula automática falló:", error);
+        return NextResponse.json({ ok: true, status: app.status, enrollmentError: "La solicitud quedó aprobada, pero no se pudo crear la matrícula. Usa «Crear matrícula» para reintentar." });
+      }
+    }
+    return NextResponse.json({ ok: true, status: app.status, enrollmentCode, enrollmentCreated });
   } catch (error) {
     if (isNotFoundError(error)) return jsonError(error.message, 404);
     console.error("[admin/status]", error);

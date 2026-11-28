@@ -1,4 +1,5 @@
 "use client";
+import { NodoMark } from "@/components/brand/Brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BrainCircuit, ClipboardList, UserSearch, GraduationCap, LayoutDashboard, LogOut, ShieldCheck, Wallet } from "lucide-react";
@@ -24,8 +25,8 @@ export function AdminShell({ children, demoWarning, dataSource }: { children: Re
     <div className="mx-auto flex min-h-dvh max-w-[90rem] flex-col gap-4 p-3 sm:p-4 lg:flex-row">
       <aside className="glass glass-strong flex shrink-0 flex-col gap-4 rounded-xl p-3 lg:sticky lg:top-4 lg:h-[calc(100dvh-2rem)] lg:w-64">
         <Link href="/admin" className="flex min-h-11 items-center gap-2 px-2 font-heading text-lg font-semibold">
-          <span aria-hidden className="inline-flex size-8 items-center justify-center rounded-lg bg-primary font-bold text-on-primary">8</span>
-          Administración
+          <NodoMark />
+          <span className="flex flex-col leading-tight">Nodo<span className="text-xs font-medium text-muted">Administración</span></span>
         </Link>
         <nav aria-label="Administración">
           <ul className="flex gap-1 overflow-x-auto lg:flex-col">

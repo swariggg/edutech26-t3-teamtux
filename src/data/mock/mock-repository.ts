@@ -1,11 +1,12 @@
 import "server-only";
-import type { ApplicationView, AuditLog, Enrollment, EnrollmentView, Installment, InstallmentView, Student } from "@/domain/types";
+import type { ApplicationView, AuditLog, DocumentKind, DocumentReview, Enrollment, EnrollmentView, Installment, InstallmentView, StoredFile, Student } from "@/domain/types";
 import type { Repository } from "../repository";
 import { APPLICATION_CONFLICT_MSG, ConflictError, INSTALLMENT_CLOSED_MSG, NotFoundError, effectiveInstallmentStatus, matchesSearch, newTrackingCode, paginate } from "../repository";
 import { computeDashboardStats } from "../stats";
+import { enrollmentPlan } from "../enrollment-plan";
 import { buildSeed, type MockDB } from "./seed";
 import { institution } from "@/content/institution";
-import { nowISO } from "@/lib/clock";
+import { now as clockNow, nowISO } from "@/lib/clock";
 
 const g = globalThis as unknown as { __eaMockDB?: MockDB; __eaMockPaymentRefs?: Set<string> };
 /** Referencias de pago ya aplicadas (idempotencia, como el índice único de installment_payments). */
@@ -38,12 +39,13 @@ export class MockRepository implements Repository {
     const d = db();
     const st = d.students.find((s) => s.id === i.studentId);
     const en = d.enrollments.find((e) => e.id === i.enrollmentId);
-    return clone({ ...i, status: effectiveInstallmentStatus(i), studentName: st?.fullName ?? "—", grade: en?.grade ?? "primero_egb" });
+    return clone({ ...i, status: effectiveInstallmentStatus(i), studentName: st?.fullName ?? "—", grade: en?.grade ?? "primero_egb", studentCode: st?.code, studentDocumentId: st?.documentId });
   }
 
   private enrView(e: Enrollment): EnrollmentView {
     const st = db().students.find((s) => s.id === e.studentId);
-    return clone({ ...e, studentName: st?.fullName ?? "—" });
+    const g = st ? db().guardians.find((x) => x.id === st.guardianId) : undefined;
+    return clone({ ...e, studentName: st?.fullName ?? "—", studentCode: st?.code, studentDocumentId: st?.documentId, guardianKey: g?.code ?? g?.id, scholarshipPct: st?.scholarshipPct ?? 0 });
   }
 
   async listApplications(p?: Parameters<Repository["listApplications"]>[0]) {
@@ -140,11 +142,68 @@ export class MockRepository implements Repository {
     return this.appView(a);
   }
 
+  async attachDocument(applicationId: string, kind: DocumentKind, file: StoredFile) {
+    const a = db().applications.find((x) => x.id === applicationId);
+    if (!a) throw new NotFoundError("Solicitud");
+    const doc = a.documents.find((d) => d.kind === kind);
+    if (doc) Object.assign(doc, { received: true, file });
+    else a.documents.push({ kind, received: true, file });
+    a.updatedAt = nowISO();
+  }
+
+  async saveDocumentReview(applicationId: string, review: DocumentReview) {
+    const a = db().applications.find((x) => x.id === applicationId);
+    if (!a) throw new NotFoundError("Solicitud");
+    a.aiReview = structuredClone(review);
+  }
+
+  async enrollApplication(applicationId: string, by: string) {
+    const d = db();
+    const app = d.applications.find((a) => a.id === applicationId);
+    if (!app) throw new NotFoundError("Solicitud");
+    if (app.status !== "aprobada") throw new ConflictError("Solo se puede matricular una solicitud aprobada.");
+    const existing = d.enrollments.find((e) => e.studentId === app.studentId && e.academicYear === app.academicYear);
+    if (existing) return { enrollment: clone(existing), created: false };
+    d.seq.enrollment += 1;
+    const year = app.academicYear.slice(0, 4);
+    const enrollment: Enrollment = {
+      id: this.nid("enr"), code: `MAT-${year}-${crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()}`,
+      studentId: app.studentId, applicationId: app.id, grade: app.gradeApplied, academicYear: app.academicYear,
+      status: "pendiente_pago", enrolledAt: nowISO(),
+    };
+    d.enrollments.push(enrollment);
+    const plan = enrollmentPlan(app.academicYear, clockNow());
+    for (const p of plan) {
+      d.installments.push({
+        id: this.nid("ins"), enrollmentId: enrollment.id, studentId: app.studentId, concept: p.concept, period: p.period,
+        description: p.description, amount: p.amount, amountPaid: 0, dueDate: p.due_date, status: "pendiente",
+      });
+    }
+    await this.addAuditLog({ actor: by, action: "enrollment.created", entity: "enrollment", entityId: enrollment.id, details: { code: enrollment.code, trackingCode: app.trackingCode, installments: plan.length } });
+    return { enrollment: clone(enrollment), created: true };
+  }
+
+  async getEnrollmentDetail(id: string) {
+    const d = db();
+    const enrollment = d.enrollments.find((e) => e.id === id);
+    if (!enrollment) return null;
+    const student = d.students.find((s) => s.id === enrollment.studentId)!;
+    const guardian = d.guardians.find((g) => g.id === student.guardianId)!;
+    const installments = d.installments.filter((i) => i.enrollmentId === id).map((i) => ({ ...i, status: effectiveInstallmentStatus(i) })).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
+    const app = enrollment.applicationId ? d.applications.find((a) => a.id === enrollment.applicationId) : undefined;
+    return clone({ enrollment, student, guardian, installments, application: app ? { id: app.id, trackingCode: app.trackingCode, status: app.status } : undefined });
+  }
+
+  async getEnrollmentByApplication(applicationId: string) {
+    const e = db().enrollments.find((x) => x.applicationId === applicationId);
+    return e ? clone(e) : null;
+  }
+
   async listEnrollments(p?: Parameters<Repository["listEnrollments"]>[0]) {
     const rows = db()
       .enrollments.filter((e) => (!p?.status || e.status === p.status) && (!p?.grade || e.grade === p.grade) && (!p?.academicYear || e.academicYear === p.academicYear))
       .map((e) => this.enrView(e))
-      .filter((e) => matchesSearch([e.code, e.studentName], p?.search))
+      .filter((e) => matchesSearch([e.code, e.studentName, e.studentCode, e.studentDocumentId], p?.search))
       .sort((a, b) => a.code.localeCompare(b.code));
     return paginate(rows, p);
   }
@@ -153,7 +212,7 @@ export class MockRepository implements Repository {
     const rows = db()
       .installments.map((i) => this.insView(i))
       .filter((i) => (!p?.status || i.status === p.status) && (!p?.period || i.period === p.period) && (!p?.studentId || i.studentId === p.studentId))
-      .filter((i) => matchesSearch([i.studentName, i.description, i.reference], p?.search))
+      .filter((i) => matchesSearch([i.studentName, i.studentCode, i.studentDocumentId, i.description, i.reference], p?.search))
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.studentName.localeCompare(b.studentName));
     return paginate(rows, p);
   }
@@ -192,11 +251,27 @@ export class MockRepository implements Repository {
     const applied = Math.round((i.amountPaid - before) * 100) / 100;
     const full = i.amountPaid >= i.amount;
     i.status = full ? "pagada" : "parcial";
-    i.paidAt = full ? nowISO() : undefined;
+    i.paidAt = full ? (data.paidAt ?? nowISO()) : undefined;
     i.method = data.method;
     if (ref) { i.reference = ref; paymentRefs.add(`${id}|${ref}`); }
     await this.addAuditLog({ actor: data.by, action: "payment.received", entity: "installment", entityId: id, details: { amount: applied, requested: data.amount, method: data.method, reference: ref, status: i.status } });
+    // Igual que el trigger trg_activate_enrollment de Supabase: matrícula pagada → matrícula activa.
+    const enr = full && i.concept === "matricula" ? db().enrollments.find((e) => e.id === i.enrollmentId && e.status === "pendiente_pago") : undefined;
+    if (enr) {
+      enr.status = "activa";
+      await this.addAuditLog({ actor: "sistema", action: "enrollment.activated", entity: "enrollment", entityId: enr.id, details: { code: enr.code, installmentId: i.id } });
+    }
     return { installment: clone({ ...i, status: effectiveInstallmentStatus(i) }), applied: true };
+  }
+
+  async undoDemoPayment(id: string, by: string) {
+    const i = db().installments.find((x) => x.id === id);
+    if (!i) throw new NotFoundError("Cuota");
+    if (i.concept !== "pension" || !i.reference?.startsWith("DEMO-")) throw new ConflictError("Solo se pueden deshacer pagos de demostración de pensiones.");
+    paymentRefs.delete(`${id}|${i.reference}`);
+    Object.assign(i, { amountPaid: 0, status: "pendiente", paidAt: undefined, method: undefined, reference: undefined });
+    await this.addAuditLog({ actor: by, action: "payment.demo_reverted", entity: "installment", entityId: id, details: { period: i.period } });
+    return clone({ ...i, status: effectiveInstallmentStatus(i) });
   }
 
   async listAuditLogs(p?: Parameters<Repository["listAuditLogs"]>[0]) {

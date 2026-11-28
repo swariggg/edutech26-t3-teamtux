@@ -1,12 +1,13 @@
 import "server-only";
 import type {
-  Application, ApplicationStatus, ApplicationView, AuditLog, Enrollment, EnrollmentView, Guardian, Installment, InstallmentView, Student,
+  Application, ApplicationStatus, ApplicationView, AuditLog, DocumentKind, DocumentReview, Enrollment, EnrollmentView, Guardian, Installment, InstallmentView, StoredFile, Student,
 } from "@/domain/types";
 import type { Repository } from "../repository";
 import { APPLICATION_CONFLICT_MSG, ConflictError, INSTALLMENT_CLOSED_MSG, NotFoundError, effectiveInstallmentStatus, matchesSearch, paginate } from "../repository";
 import { computeDashboardStats } from "../stats";
+import { enrollmentPlan } from "../enrollment-plan";
 import { getSupabase } from "./client";
-import { nowISO } from "@/lib/clock";
+import { now as clockNow, nowISO } from "@/lib/clock";
 import { institution } from "@/content/institution";
 
 /* eslint-disable @typescript-eslint/no-explicit-any -- filas sin tipos generados; ejecutar `supabase gen types` más adelante */
@@ -28,6 +29,7 @@ const toApplication = (r: Row): Application => ({
     .map((e) => ({ status: e.status, at: e.at, by: e.actor, note: e.note ?? undefined }))
     .sort((a, b) => a.at.localeCompare(b.at)),
   interviewAt: r.interview_at ?? undefined, submittedAt: r.submitted_at, updatedAt: r.updated_at, notes: r.notes ?? undefined,
+  aiReview: r.ai_review ?? undefined,
 });
 const toEnrollment = (r: Row): Enrollment => ({
   id: r.id, code: r.code, studentId: r.student_id, applicationId: r.application_id ?? undefined, grade: r.grade,
@@ -54,6 +56,20 @@ function must<T>(res: { data: T | null; error: SbError }): T {
   return res.data as T;
 }
 
+/**
+ * Lee todas las filas por páginas: PostgREST devuelve como máximo 1000 filas por consulta
+ * (hay 2400 cuotas en el dataset). `build` debe crear la consulta con un orden total (p. ej. … y luego id).
+ */
+const PAGE_ROWS = 1000;
+async function selectAll(build: () => { range(from: number, to: number): PromiseLike<{ data: unknown; error: SbError }> }): Promise<Row[]> {
+  const out: Row[] = [];
+  for (let from = 0; ; from += PAGE_ROWS) {
+    const rows = must(await build().range(from, from + PAGE_ROWS - 1)) as Row[];
+    out.push(...rows);
+    if (rows.length < PAGE_ROWS) return out;
+  }
+}
+
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export class SupabaseRepository implements Repository {
@@ -65,10 +81,12 @@ export class SupabaseRepository implements Repository {
   }
 
   async listApplications(p?: Parameters<Repository["listApplications"]>[0]) {
-    let q = this.sb.from("applications").select(APP_SELECT).order("updated_at", { ascending: false });
-    if (p?.status) q = q.eq("status", p.status);
-    if (p?.grade) q = q.eq("grade_applied", p.grade);
-    const rows = (must(await q) as Row[]).map((r) => this.toView(r));
+    const rows = (await selectAll(() => {
+      let q = this.sb.from("applications").select(APP_SELECT).order("updated_at", { ascending: false }).order("id");
+      if (p?.status) q = q.eq("status", p.status);
+      if (p?.grade) q = q.eq("grade_applied", p.grade);
+      return q;
+    })).map((r) => this.toView(r));
     return paginate(rows.filter((a) => matchesSearch([a.trackingCode, a.student.fullName, a.guardian.fullName, a.student.documentId], p?.search)), p);
   }
 
@@ -107,6 +125,7 @@ export class SupabaseRepository implements Repository {
       p_relationship: input.relationship, p_address: input.address ?? null,
       p_grade: input.gradeApplied, p_academic_year: institution.academicYear,
       p_documents: institution.requirements.map((r) => ({ kind: r.kind, received: input.documents.includes(r.kind) })),
+      p_now: nowISO(), // fecha de la app (reloj de demostración), ver migración demo_clock
     });
     if (error) {
       if (error.message.includes("application_conflict")) throw new ConflictError(APPLICATION_CONFLICT_MSG);
@@ -118,27 +137,85 @@ export class SupabaseRepository implements Repository {
   }
 
   async updateApplicationStatus(id: string, status: ApplicationStatus, by: string, note?: string) {
-    const res = await this.sb.from("applications").update({ status }).eq("id", id).select("id").maybeSingle();
+    const at = nowISO();
+    const res = await this.sb.from("applications").update({ status, updated_at: at }).eq("id", id).select("id").maybeSingle();
     if (!must(res)) throw new NotFoundError("Solicitud");
-    must(await this.sb.from("application_status_events").insert({ application_id: id, status, actor: by, note: note ?? null }));
+    must(await this.sb.from("application_status_events").insert({ application_id: id, status, actor: by, note: note ?? null, at }));
     return (await this.getApplication(id))!;
   }
 
+  /** Atómico en Postgres (public.attach_document). */
+  async attachDocument(applicationId: string, kind: DocumentKind, file: StoredFile) {
+    if (!UUID_RE.test(applicationId)) throw new NotFoundError("Solicitud");
+    const { error } = await this.sb.rpc("attach_document", { p_application_id: applicationId, p_kind: kind, p_file: file, p_now: nowISO() });
+    if (error) {
+      if (error.message.includes("application_not_found")) throw new NotFoundError("Solicitud");
+      throw new Error(`Supabase: ${error.message}`);
+    }
+  }
+
+  async saveDocumentReview(applicationId: string, review: DocumentReview) {
+    must(await this.sb.from("applications").update({ ai_review: review }).eq("id", applicationId));
+  }
+
+  /** Atómico e idempotente en Postgres (public.enroll_application). */
+  async enrollApplication(applicationId: string, by: string) {
+    if (!UUID_RE.test(applicationId)) throw new NotFoundError("Solicitud");
+    const app = must(await this.sb.from("applications").select("academic_year").eq("id", applicationId).maybeSingle()) as Row | null;
+    if (!app) throw new NotFoundError("Solicitud");
+    const { data, error } = await this.sb.rpc("enroll_application", {
+      p_application_id: applicationId, p_installments: enrollmentPlan(app.academic_year, clockNow()), p_actor: by, p_now: nowISO(),
+    });
+    if (error) {
+      if (error.message.includes("application_not_found")) throw new NotFoundError("Solicitud");
+      if (error.message.includes("application_not_approved")) throw new ConflictError("Solo se puede matricular una solicitud aprobada.");
+      throw new Error(`Supabase: ${error.message}`);
+    }
+    const row = (data as Row[])[0]!;
+    const enr = must(await this.sb.from("enrollments").select("*").eq("id", row.enrollment_id).single()) as Row;
+    return { enrollment: toEnrollment(enr), created: Boolean(row.created) };
+  }
+
+  async getEnrollmentDetail(id: string) {
+    if (!UUID_RE.test(id)) return null;
+    const r = must(await this.sb.from("enrollments").select("*, student:students(*, guardian:guardians(*)), application:applications(id, tracking_code, status)").eq("id", id).maybeSingle()) as Row | null;
+    if (!r) return null;
+    const ins = must(await this.sb.from("installments").select("*").eq("enrollment_id", id).order("due_date")) as Row[];
+    return {
+      enrollment: toEnrollment(r),
+      student: toStudent(r.student),
+      guardian: toGuardian(r.student.guardian),
+      installments: ins.map(toInstallment),
+      application: r.application ? { id: r.application.id, trackingCode: r.application.tracking_code, status: r.application.status } : undefined,
+    };
+  }
+
+  async getEnrollmentByApplication(applicationId: string) {
+    if (!UUID_RE.test(applicationId)) return null;
+    const r = must(await this.sb.from("enrollments").select("*").eq("application_id", applicationId).order("enrolled_at", { ascending: false }).limit(1).maybeSingle()) as Row | null;
+    return r ? toEnrollment(r) : null;
+  }
+
   async listEnrollments(p?: Parameters<Repository["listEnrollments"]>[0]) {
-    let q = this.sb.from("enrollments").select("*, student:students(full_name)").order("code");
-    if (p?.status) q = q.eq("status", p.status);
-    if (p?.grade) q = q.eq("grade", p.grade);
-    if (p?.academicYear) q = q.eq("academic_year", p.academicYear);
-    const rows: EnrollmentView[] = (must(await q) as Row[]).map((r) => ({ ...toEnrollment(r), studentName: r.student?.full_name ?? "—" }));
-    return paginate(rows.filter((e) => matchesSearch([e.code, e.studentName], p?.search)), p);
+    const rows: EnrollmentView[] = (await selectAll(() => {
+      let q = this.sb.from("enrollments").select("*, student:students(full_name, code, document_id, guardian_id, scholarship_pct, guardian:guardians(code))").order("code").order("id");
+      if (p?.status) q = q.eq("status", p.status);
+      if (p?.grade) q = q.eq("grade", p.grade);
+      if (p?.academicYear) q = q.eq("academic_year", p.academicYear);
+      return q;
+    })).map((r) => ({ ...toEnrollment(r), studentName: r.student?.full_name ?? "—", studentCode: r.student?.code ?? undefined, studentDocumentId: r.student?.document_id ?? undefined,
+      guardianKey: r.student?.guardian?.code ?? r.student?.guardian_id ?? undefined, scholarshipPct: Number(r.student?.scholarship_pct ?? 0) }));
+    return paginate(rows.filter((e) => matchesSearch([e.code, e.studentName, e.studentCode, e.studentDocumentId], p?.search)), p);
   }
 
   async listInstallments(p?: Parameters<Repository["listInstallments"]>[0]) {
-    let q = this.sb.from("installments").select("*, student:students(full_name), enrollment:enrollments(grade)").order("due_date");
-    if (p?.period) q = q.eq("period", p.period);
-    if (p?.studentId) q = q.eq("student_id", p.studentId);
-    const rows: InstallmentView[] = (must(await q) as Row[]).map((r) => ({ ...toInstallment(r), studentName: r.student?.full_name ?? "—", grade: r.enrollment?.grade }));
-    return paginate(rows.filter((i) => (!p?.status || i.status === p.status) && matchesSearch([i.studentName, i.description, i.reference], p?.search)), p);
+    const rows: InstallmentView[] = (await selectAll(() => {
+      let q = this.sb.from("installments").select("*, student:students(full_name, code, document_id), enrollment:enrollments(grade)").order("due_date").order("id");
+      if (p?.period) q = q.eq("period", p.period);
+      if (p?.studentId) q = q.eq("student_id", p.studentId);
+      return q;
+    })).map((r) => ({ ...toInstallment(r), studentName: r.student?.full_name ?? "—", grade: r.enrollment?.grade, studentCode: r.student?.code ?? undefined, studentDocumentId: r.student?.document_id ?? undefined }));
+    return paginate(rows.filter((i) => (!p?.status || i.status === p.status) && matchesSearch([i.studentName, i.studentCode, i.studentDocumentId, i.description, i.reference], p?.search)), p);
   }
 
   async findPaymentsForFamily(studentQuery: string, guardianDocumentId: string) {
@@ -162,7 +239,7 @@ export class SupabaseRepository implements Repository {
   async registerPayment(id: string, data: Parameters<Repository["registerPayment"]>[1]) {
     if (!UUID_RE.test(id)) throw new NotFoundError("Cuota");
     const { data: rows, error } = await this.sb.rpc("register_payment", {
-      p_installment_id: id, p_amount: data.amount, p_method: data.method, p_reference: data.reference ?? null, p_actor: data.by,
+      p_installment_id: id, p_amount: data.amount, p_method: data.method, p_reference: data.reference ?? null, p_actor: data.by, p_now: nowISO(),
     });
     if (error) {
       if (error.message.includes("installment_not_found")) throw new NotFoundError("Cuota");
@@ -171,7 +248,24 @@ export class SupabaseRepository implements Repository {
     }
     const row = (rows as Row[] | null)?.[0];
     if (!row) throw new Error("Supabase: register_payment sin resultado");
-    return { installment: toInstallment(row.installment as Row), applied: Boolean(row.applied) };
+    let installment = toInstallment(row.installment as Row);
+    // Demo del récord de puntualidad: fecha de pago elegida (puntual o atrasada) en lugar de «hoy».
+    if (data.paidAt && row.applied && installment.status === "pagada") {
+      installment = toInstallment(must(await this.sb.from("installments").update({ paid_at: data.paidAt }).eq("id", id).select("*").single()) as Row);
+    }
+    return { installment, applied: Boolean(row.applied) };
+  }
+
+  /** Atómico en Postgres (public.undo_demo_payment). */
+  async undoDemoPayment(id: string, by: string) {
+    if (!UUID_RE.test(id)) throw new NotFoundError("Cuota");
+    const { data, error } = await this.sb.rpc("undo_demo_payment", { p_installment_id: id, p_actor: by, p_now: nowISO() });
+    if (error) {
+      if (error.message.includes("installment_not_found")) throw new NotFoundError("Cuota");
+      if (error.message.includes("not_demo_payment")) throw new ConflictError("Solo se pueden deshacer pagos de demostración de pensiones.");
+      throw new Error(`Supabase: ${error.message}`);
+    }
+    return toInstallment(data as Row);
   }
 
   async listAuditLogs(p?: Parameters<Repository["listAuditLogs"]>[0]) {
@@ -182,7 +276,7 @@ export class SupabaseRepository implements Repository {
   }
 
   async addAuditLog(entry: Omit<AuditLog, "id" | "at">) {
-    const r = must(await this.sb.from("audit_logs").insert({ actor: entry.actor, action: entry.action, entity: entry.entity, entity_id: entry.entityId ?? null, details: entry.details ?? null }).select().single()) as Row;
+    const r = must(await this.sb.from("audit_logs").insert({ at: nowISO(), actor: entry.actor, action: entry.action, entity: entry.entity, entity_id: entry.entityId ?? null, details: entry.details ?? null }).select().single()) as Row;
     return toLog(r);
   }
 

@@ -12,7 +12,7 @@ const atkinson = Atkinson_Hyperlegible({ subsets: ["latin"], weight: ["400", "70
 
 export const metadata: Metadata = {
   title: { default: `${institution.name} · Admisiones, matrículas y pagos`, template: `%s · ${institution.name}` },
-  description: "Solicita la admisión, consulta tu estado y tus pagos, y conversa con el asesor virtual.",
+  description: `${institution.tagline} Solicita la admisión, consulta tu estado y tus pagos, y conversa con ${institution.assistant.name}, el asistente virtual.`,
 };
 
 export const viewport: Viewport = {

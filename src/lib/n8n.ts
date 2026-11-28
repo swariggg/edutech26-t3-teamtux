@@ -1,7 +1,7 @@
 import "server-only";
 import { env } from "./env";
 
-export type OutboundEvent = "application.created" | "application.status_changed" | "payment.received" | "tracking_code.notify";
+export type OutboundEvent = "application.created" | "application.status_changed" | "payment.received" | "tracking_code.notify" | "enrollment.created" | "payment.reminder";
 
 /** Resultado de un envío a n8n: "sin_n8n" si no está configurado, "ok", o el error (HTTP o de red). */
 export type EmitResult = { delivered: true; detail: "ok" } | { delivered: false; detail: string };

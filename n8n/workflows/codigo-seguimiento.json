@@ -1,5 +1,5 @@
 {
-  "name": "Eight Academy · Código de seguimiento (correo / WhatsApp)",
+  "name": "Nodo · Avisos a familias: seguimiento, matrícula y recordatorios de pago (correo / WhatsApp)",
   "nodes": [
     {
       "id": "a1f0c2d4-0001-4c1e-9a10-000000000001",
@@ -27,7 +27,7 @@
     },
     {
       "id": "a1f0c2d4-0002-4c1e-9a10-000000000002",
-      "name": "¿Es tracking_code.notify?",
+      "name": "¿Es un aviso para la familia?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
       "position": [
@@ -50,9 +50,27 @@
                 "type": "string",
                 "operation": "equals"
               }
+            },
+            {
+              "id": "c0de0003-0000-4000-8000-000000000003",
+              "leftValue": "={{ $json.body.event }}",
+              "rightValue": "enrollment.created",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "c0de0004-0000-4000-8000-000000000004",
+              "leftValue": "={{ $json.body.event }}",
+              "rightValue": "payment.reminder",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
             }
           ],
-          "combinator": "and"
+          "combinator": "or"
         },
         "options": {}
       }
@@ -67,7 +85,7 @@
         280
       ],
       "parameters": {
-        "jsCode": "// Arma el aviso con el/los código(s) de seguimiento. Escapa todo lo que viene del formulario.\nconst esc = (s) => String(s ?? \"\").replace(/[&<>\"']/g, (c) => ({ \"&\": \"&amp;\", \"<\": \"&lt;\", \">\": \"&gt;\", '\"': \"&quot;\", \"'\": \"&#39;\" }[c]));\nreturn $input.all().map(({ json }) => {\n  const d = json.body.data;\n  const resend = d.reason === \"resend\";\n  const rows = d.applications.map((a) =>\n    '<tr><td style=\"padding:8px 12px;font:600 18px monospace;letter-spacing:1px\">' + esc(a.trackingCode) + '</td>' +\n    '<td style=\"padding:8px 12px\">' + esc(a.studentFirstName) + ' · ' + esc(a.grade) + ' · ' + esc(a.academicYear) + '</td>' +\n    '<td style=\"padding:8px 12px\">' + esc(a.status) + '</td></tr>').join(\"\");\n  const statusUrl = d.statusUrl; // la app manda el enlace completo (n8n Cloud no expone variables de entorno)\n  const html =\n    '<div style=\"font-family:system-ui,sans-serif;color:#0F1E2E;max-width:560px\">' +\n    '<h2 style=\"color:#0E6E8C\">' + esc(d.institution.name) + '</h2>' +\n    '<p>Hola ' + esc(d.guardian.name) + ',</p>' +\n    '<p>' + (resend ? 'Recibimos un pedido para recordar tus códigos de seguimiento.' : 'Recibimos tu solicitud de admisión. Este es tu código de seguimiento:') + '</p>' +\n    '<table style=\"border-collapse:collapse;background:#EAF0F4;border-radius:8px\">' + rows + '</table>' +\n    '<p>Para consultar el estado ingresa a <a href=\"' + esc(statusUrl) + '\">' + esc(statusUrl) + '</a> con el código y la cédula del representante.</p>' +\n    (resend ? '<p style=\"color:#4A5B6C;font-size:13px\">Si no pediste este correo, puedes ignorarlo: nadie puede ver tu solicitud sin tu cédula.</p>' : '') +\n    '<p style=\"color:#4A5B6C;font-size:13px\">Dudas: ' + esc(d.institution.email) + ' · ' + esc(d.institution.phone) + '</p></div>';\n  const codes = d.applications.map((a) => a.trackingCode).join(\", \");\n  return { json: {\n    to: d.guardian.email,\n    // WhatsApp Cloud API: solo dígitos con código de país (Ecuador: 09XXXXXXXX → 5939XXXXXXXX).\n    phone: (() => { const p = String(d.guardian.phone ?? \"\").replace(/\\D/g, \"\"); return !p ? null : p.length === 10 && p.startsWith(\"0\") ? \"593\" + p.slice(1) : p; })(),\n    subject: (resend ? \"Tus códigos de seguimiento · \" : \"Solicitud recibida · \") + d.institution.name,\n    html,\n    whatsappText: (resend ? \"Tus códigos de seguimiento: \" : \"Recibimos tu solicitud. Tu código de seguimiento es \") + codes + \". Consulta el estado en \" + statusUrl,\n  } };\n});"
+        "jsCode": "// Arma el aviso para la familia según el evento. Escapa todo lo que viene del formulario.\n// - tracking_code.notify: código de seguimiento (solicitud recibida o reenvío).\n// - enrollment.created: solicitud aprobada → código de matrícula, valores y enlace a Pagos.\n// - payment.reminder: recordatorio de la próxima cuota sin pagar (matrícula, por vencer, vencida o mora).\nconst esc = (s) => String(s ?? \"\").replace(/[&<>\"']/g, (c) => ({ \"&\": \"&amp;\", \"<\": \"&lt;\", \">\": \"&gt;\", '\"': \"&quot;\", \"'\": \"&#39;\" }[c]));\nconst phoneOf = (g) => { const p = String(g.phone ?? \"\").replace(/\\D/g, \"\"); return !p ? null : p.length === 10 && p.startsWith(\"0\") ? \"593\" + p.slice(1) : p; };\nconst wrap = (d, inner) =>\n  '<div style=\"font-family:system-ui,sans-serif;color:#06283B;max-width:560px\">' +\n  '<h2 style=\"color:#063F5C\">' + esc(d.institution.name) + '</h2>' +\n  '<p>Hola ' + esc(d.guardian.name) + ',</p>' + inner +\n  '<p style=\"color:#3D5A6A;font-size:13px\">Dudas: ' + esc(d.institution.email) + ' · ' + esc(d.institution.phone) + '</p></div>';\n\nreturn $input.all().map(({ json }) => {\n  const event = json.body.event;\n  const d = json.body.data;\n\n  if (event === \"enrollment.created\") {\n    const f = d.fees;\n    const inner =\n      '<p>¡Felicidades! La solicitud de admisión de <strong>' + esc(d.student.firstName) + '</strong> para ' + esc(d.student.grade) + ' (' + esc(d.academicYear) + ') fue <strong>aprobada</strong>.</p>' +\n      '<p>Este es tu código de matrícula:</p>' +\n      '<p style=\"font:600 22px monospace;letter-spacing:1px;background:#E6F6FA;border-radius:8px;padding:10px 14px;display:inline-block\">' + esc(d.enrollmentCode) + '</p>' +\n      '<ul>' +\n      '<li>Matrícula: <strong>' + esc(f.enrollment) + '</strong>, paga hasta el <strong>' + esc(f.enrollmentDue) + '</strong> para completar la inscripción.</li>' +\n      '<li>Pensión: ' + esc(f.monthly) + ' × ' + esc(f.months) + ' meses, vence el día ' + esc(f.dueDay) + ' de cada mes.</li>' +\n      '</ul>' +\n      '<p>Paga a tiempo y suma a tu <strong>récord de puntualidad</strong>: con 80 % o más tu familia gana una beca del 20 % para el año siguiente.</p>' +\n      '<p><a href=\"' + esc(d.paymentsUrl) + '\" style=\"background:#063F5C;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600\">Ver mis pagos</a></p>' +\n      '<p style=\"font-size:13px\">Ingresa con el código de matrícula y la cédula del representante.</p>';\n    return { json: {\n      to: d.guardian.email,\n      phone: phoneOf(d.guardian),\n      subject: \"Solicitud aprobada · matrícula \" + d.enrollmentCode + \" · \" + d.institution.name,\n      html: wrap(d, inner),\n      whatsappText: \"¡Felicidades! La solicitud de \" + d.student.firstName + \" fue aprobada. Código de matrícula: \" + d.enrollmentCode + \". Matrícula \" + d.fees.enrollment + \" hasta el \" + d.fees.enrollmentDue + \". Ver pagos: \" + d.paymentsUrl,\n    } };\n  }\n\n  if (event === \"payment.reminder\") {\n    // Recordatorio de la PRÓXIMA cuota sin pagar; el tono cambia según el caso y el récord de puntualidad.\n    const i = d.installment, r = d.record, s = d.scholarship;\n    const pay = '<p><a href=\"' + esc(d.paymentsUrl) + '\" style=\"background:#063F5C;color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600\">Pagar ahora</a></p>';\n    const bar = '<div style=\"background:#E6F6FA;border-radius:999px;height:12px;width:100%;max-width:420px;position:relative;margin:6px 0\">' +\n      '<div style=\"background:#F7AD1A;height:12px;border-radius:999px;width:' + Math.min(100, Number(r.pct) || 0) + '%\"></div>' +\n      '<div style=\"position:absolute;left:' + s.minPct + '%;top:-3px;width:2px;height:18px;background:#063F5C\"></div></div>' +\n      '<p style=\"font-size:13px;color:#3D5A6A\">Tu récord de puntualidad: <strong>' + esc(r.pct) + ' %</strong> · meta para la beca: ' + esc(s.minPct) + ' %</p>';\n    const when = i.days > 1 ? 'vence en ' + i.days + ' días, el ' + esc(i.dueDate) : i.days === 1 ? 'vence mañana, ' + esc(i.dueDate) : i.days === 0 ? 'vence hoy, ' + esc(i.dueDate) : 'venció el ' + esc(i.dueDate) + ' (hace ' + (-i.days) + ' días)';\n    let subject, inner, wa;\n    if (d.kind === \"matricula\") {\n      subject = \"Recordatorio: paga la matrícula de \" + d.student.firstName;\n      inner = '<p>Te recordamos que la <strong>matrícula ' + esc(d.enrollmentCode) + '</strong> de ' + esc(d.student.firstName) + ' (' + esc(d.student.grade) + ') está pendiente de pago.</p>' +\n        '<p style=\"font-size:18px\"><strong>' + esc(i.amount) + '</strong> · ' + when + '.</p>' +\n        '<p>Al pagarla, la matrícula queda <strong>activa</strong> y el cupo asegurado. Después vienen las pensiones: cada una pagada a tiempo suma a tu récord y con ' + esc(s.minPct) + ' % ganas una <strong>beca del ' + esc(s.discountPct) + ' %</strong> para el año siguiente.</p>' + pay;\n      wa = \"Recordatorio: la matrícula \" + d.enrollmentCode + \" de \" + d.student.firstName + \" (\" + i.amount + \") \" + when.replace(/<[^>]+>/g, \"\") + \". Paga aquí: \" + d.paymentsUrl;\n    } else if (d.kind === \"por_vencer\") {\n      subject = \"Tu pensión de \" + i.month + \" \" + (i.days <= 1 ? \"vence pronto\" : \"vence el \" + i.dueDate);\n      const motiva = r.earned ? '¡Ya alcanzaste la beca! Sigue así.' : r.onTrack ? 'Si pagas a tiempo sumas <strong>+10 %</strong>. Te faltan <strong>' + esc(r.missing) + ' %</strong> para la beca del ' + esc(s.discountPct) + ' %.' : 'Cada pago puntual suma +10 % a tu récord.';\n      inner = '<p>La pensión de <strong>' + esc(i.month) + '</strong> de ' + esc(d.student.firstName) + ' (' + esc(i.amount) + ') ' + when + '.</p><p>' + motiva + '</p>' + bar + pay;\n      wa = \"La pensión de \" + i.month + \" de \" + d.student.firstName + \" (\" + i.amount + \") \" + when.replace(/<[^>]+>/g, \"\") + \". Pagando a tiempo sumas +10 % para la beca. \" + d.paymentsUrl;\n    } else if (d.kind === \"vencida\") {\n      subject = \"Pensión de \" + i.month + \" vencida: aún puedes ponerte al día\";\n      inner = '<p>La pensión de <strong>' + esc(i.month) + '</strong> de ' + esc(d.student.firstName) + ' (' + esc(i.amount) + ') ' + when + '.</p>' +\n        '<p>Si la pagas ahora cuenta como atrasada (+5 %) y ' + (r.onTrack || r.pct + 5 >= s.minPct ? '<strong>todavía puedes llegar a la beca</strong>.' : 'mejoras tu récord para el próximo año.') + '</p>' + bar + pay;\n      wa = \"La pensión de \" + i.month + \" de \" + d.student.firstName + \" está vencida (\" + i.amount + \"). Ponte al día aquí: \" + d.paymentsUrl;\n    } else {\n      subject = \"Queremos ayudarte con los pagos de \" + d.student.firstName;\n      inner = '<p>Notamos que la pensión de <strong>' + esc(i.month) + '</strong> (' + esc(i.amount) + ') ' + when + '.</p>' +\n        '<p>Sabemos que pueden surgir imprevistos. <strong>Escríbenos y acordamos un plan de pagos</strong> a tu medida.</p>' + pay;\n      wa = \"Hola, la pensión de \" + i.month + \" de \" + d.student.firstName + \" está pendiente. Escríbenos para acordar un plan de pagos: \" + d.institution.email;\n    }\n    return { json: { to: d.guardian.email, phone: phoneOf(d.guardian), subject: subject + \" · \" + d.institution.name, html: wrap(d, inner), whatsappText: wa } };\n  }\n\n  // tracking_code.notify\n  const resend = d.reason === \"resend\";\n  const rows = d.applications.map((a) =>\n    '<tr><td style=\"padding:8px 12px;font:600 18px monospace;letter-spacing:1px\">' + esc(a.trackingCode) + '</td>' +\n    '<td style=\"padding:8px 12px\">' + esc(a.studentFirstName) + ' · ' + esc(a.grade) + ' · ' + esc(a.academicYear) + '</td>' +\n    '<td style=\"padding:8px 12px\">' + esc(a.status) + '</td></tr>').join(\"\");\n  const statusUrl = d.statusUrl; // la app manda el enlace completo (n8n Cloud no expone variables de entorno)\n  const inner =\n    '<p>' + (resend ? 'Recibimos un pedido para recordar tus códigos de seguimiento.' : 'Recibimos tu solicitud de admisión. Este es tu código de seguimiento:') + '</p>' +\n    '<table style=\"border-collapse:collapse;background:#E6F6FA;border-radius:8px\">' + rows + '</table>' +\n    '<p>Para consultar el estado ingresa a <a href=\"' + esc(statusUrl) + '\">' + esc(statusUrl) + '</a> con el código y la cédula del representante.</p>' +\n    (resend ? '<p style=\"color:#3D5A6A;font-size:13px\">Si no pediste este correo, puedes ignorarlo: nadie puede ver tu solicitud sin tu cédula.</p>' : '');\n  const codes = d.applications.map((a) => a.trackingCode).join(\", \");\n  return { json: {\n    to: d.guardian.email,\n    // WhatsApp Cloud API: solo dígitos con código de país (Ecuador: 09XXXXXXXX → 5939XXXXXXXX).\n    phone: phoneOf(d.guardian),\n    subject: (resend ? \"Tus códigos de seguimiento · \" : \"Solicitud recibida · \") + d.institution.name,\n    html: wrap(d, inner),\n    whatsappText: (resend ? \"Tus códigos de seguimiento: \" : \"Recibimos tu solicitud. Tu código de seguimiento es \") + codes + \". Consulta el estado en \" + statusUrl,\n  } };\n});"
       }
     },
     {
@@ -189,6 +207,55 @@
           "name": "WhatsApp Cloud API"
         }
       }
+    },
+    {
+      "id": "a1f0c2d4-0008-4c1e-9a10-000000000008",
+      "name": "Cada día 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        640
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "a1f0c2d4-0009-4c1e-9a10-000000000009",
+      "name": "Pedir recordatorios a la app",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        640
+      ],
+      "disabled": true,
+      "notes": "Actívalo cuando la app esté publicada: reemplaza TU-APP por el dominio real. Usa la misma credencial Header Auth (x-webhook-secret).",
+      "parameters": {
+        "method": "POST",
+        "url": "https://TU-APP.vercel.app/api/reminders/run",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "",
+          "name": "Eight Academy · x-webhook-secret"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000
     }
   ],
   "connections": {
@@ -196,23 +263,11 @@
       "main": [
         [
           {
-            "node": "¿Es tracking_code.notify?",
+            "node": "¿Es un aviso para la familia?",
             "type": "main",
             "index": 0
           }
         ]
-      ]
-    },
-    "¿Es tracking_code.notify?": {
-      "main": [
-        [
-          {
-            "node": "Armar mensaje",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        []
       ]
     },
     "Armar mensaje": {
@@ -246,6 +301,29 @@
           }
         ],
         []
+      ]
+    },
+    "¿Es un aviso para la familia?": {
+      "main": [
+        [
+          {
+            "node": "Armar mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Cada día 08:00": {
+      "main": [
+        [
+          {
+            "node": "Pedir recordatorios a la app",
+            "type": "main",
+            "index": 0
+          }
+        ]
       ]
     }
   },

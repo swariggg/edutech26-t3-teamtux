@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/Button";
 import { Stepper } from "@/components/ui/Stepper";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Alert } from "@/components/ui/Alert";
+import { DocumentPicker, checkFile, type PickedFiles } from "./DocumentPicker";
+import type { DocumentKind } from "@/domain/types";
 
 const STEPS = ["Estudiante", "Representante", "Grado y documentos", "Revisión"];
 type Values = Record<string, string | string[] | boolean>;
@@ -61,6 +63,9 @@ export function AdmissionWizard() {
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [files, setFiles] = useState<PickedFiles>({});
+  const [fileErrors, setFileErrors] = useState<Partial<Record<DocumentKind, string>>>({});
+  const [progress, setProgress] = useState<string>("");
   const formRef = useRef<HTMLFormElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
 
@@ -97,17 +102,62 @@ export function AdmissionWizard() {
     go(step + 1);
   }
 
+  function pickFile(kind: DocumentKind, file: File | null) {
+    const err = file ? checkFile(file) : null;
+    setFileErrors((e) => ({ ...e, [kind]: err ?? undefined }));
+    setFiles((f) => {
+      const next = { ...f };
+      if (file && !err) next[kind] = file;
+      else delete next[kind];
+      return next;
+    });
+  }
+
+  /** Sube un archivo: pide enlace firmado → lo sube directo al almacenamiento → confirma. Un reintento. */
+  async function uploadOne(token: string, kind: DocumentKind, file: File): Promise<boolean> {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const post = (url: string, body: unknown) => fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+        const r1 = await post("/api/applications/documents/upload-url", { token, kind, fileName: file.name, mimeType: file.type, size: file.size });
+        if (!r1.ok) continue;
+        const { url, headers, path } = (await r1.json()) as { url: string; headers: Record<string, string>; path: string };
+        const put = await fetch(url, { method: "PUT", headers, body: file });
+        if (!put.ok) continue;
+        const r2 = await post("/api/applications/documents/complete", { token, kind, path, fileName: file.name });
+        if (r2.ok) return true;
+      } catch {
+        // red inestable: se reintenta una vez
+      }
+    }
+    return false;
+  }
+
   async function submit() {
     setSubmitting(true);
     setServerError(null);
     try {
-      const res = await fetch("/api/applications", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(clean(values)) });
-      const data = (await res.json()) as { trackingCode?: string; error?: string };
+      // Los documentos se marcan como recibidos solo cuando el archivo llega al almacenamiento.
+      const res = await fetch("/api/applications", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...clean(values), documents: [] }) });
+      const data = (await res.json()) as { trackingCode?: string; uploadToken?: string; error?: string };
       if (!res.ok || !data.trackingCode) throw new Error(data.error ?? "No pudimos enviar la solicitud");
-      router.push(`/admision/confirmacion?codigo=${encodeURIComponent(data.trackingCode)}`);
+      const picked = Object.entries(files) as [DocumentKind, File][];
+      let failed = 0;
+      if (picked.length && data.uploadToken) {
+        for (const [i, [kind, file]] of picked.entries()) {
+          setProgress(`Subiendo documentos: ${i + 1} de ${picked.length}…`);
+          if (!(await uploadOne(data.uploadToken, kind, file))) failed++;
+        }
+        // Avisa que terminó: la revisión con IA corre en segundo plano en el servidor.
+        if (failed < picked.length) await fetch("/api/applications/documents/finish", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: data.uploadToken }) }).catch(() => {});
+      } else if (picked.length) failed = picked.length;
+      const q = new URLSearchParams({ codigo: data.trackingCode });
+      if (picked.length) q.set("docs", String(picked.length - failed));
+      if (failed) q.set("fallidos", String(failed));
+      router.push(`/admision/confirmacion?${q}`);
     } catch (e) {
       setServerError(e instanceof Error ? e.message : "No pudimos enviar la solicitud");
       setSubmitting(false);
+      setProgress("");
     }
   }
 
@@ -122,7 +172,7 @@ export function AdmissionWizard() {
   );
 
   const errorCount = Object.keys(errors).length;
-  const docs = values.documents as string[];
+  const docCount = Object.keys(files).length;
 
   return (
     <GlassCard className="flex flex-col gap-6 p-5 sm:p-8">
@@ -183,16 +233,7 @@ export function AdmissionWizard() {
                 {institution.grades.map((g) => (<option key={g.id} value={g.id}>{g.label} · {g.level}</option>))}
               </Select>
             </Field>
-            <fieldset className="flex flex-col gap-2" aria-describedby="documents-help">
-              <legend className="mb-1 font-medium">Documentos que ya tienes listos</legend>
-              <p id="documents-help" className="text-sm text-muted">Los entregarás en secretaría o por correo. Puedes enviar la solicitud aunque falte alguno.</p>
-              {institution.requirements.map((r) => (
-                <label key={r.kind} className="flex min-h-11 items-center gap-3 rounded-md px-2 hover:bg-black/[0.03] dark:hover:bg-white/5">
-                  <input type="checkbox" name="documents" className="size-5 accent-[var(--primary)]" checked={docs.includes(r.kind)} onChange={(e) => set("documents", e.target.checked ? [...docs, r.kind] : docs.filter((d) => d !== r.kind))} />
-                  <span>{r.label}{!r.required && <span className="text-muted"> (opcional)</span>}</span>
-                </label>
-              ))}
-            </fieldset>
+            <DocumentPicker files={files} errors={fileErrors} onChange={pickFile} />
             {/* Consentimiento: se distingue de los documentos con un recuadro de color y una casilla circular. */}
             <div className={`rounded-lg border-2 p-4 ${errors.consent ? "border-danger bg-danger/5" : "border-warning/60 bg-warning/10"}`}>
               <p id="consent-title" className="mb-2 font-semibold text-warning">Términos y condiciones (obligatorio)</p>
@@ -201,7 +242,7 @@ export function AdmissionWizard() {
                   <input type="checkbox" id="consent" name="consent" className={`peer size-7 cursor-pointer appearance-none rounded-full border-2 bg-surface checked:border-warning checked:bg-warning ${errors.consent ? "border-danger" : "border-warning"}`} checked={values.consent === true} onChange={(e) => set("consent", e.target.checked)} required aria-invalid={Boolean(errors.consent)} aria-describedby={errors.consent ? "consent-title consent-error" : "consent-title"} />
                   <Check aria-hidden strokeWidth={3} className="pointer-events-none absolute inset-0 m-auto size-4 text-[var(--bg)] opacity-0 peer-checked:opacity-100" />
                 </span>
-                <span>Acepto que {institution.name} use estos datos solo para el proceso de admisión. <span aria-hidden className="text-danger">*</span></span>
+                <span>Acepto que {institution.name} use estos datos y documentos solo para el proceso de admisión y el plan de pago, incluida su revisión con inteligencia artificial como apoyo al personal, que es quien decide. <span aria-hidden className="text-danger">*</span></span>
               </label>
               {errors.consent && (
                 <p id="consent-error" className="mt-1 flex items-start gap-1.5 text-sm font-medium text-danger">
@@ -218,7 +259,7 @@ export function AdmissionWizard() {
             {[
               { title: "Estudiante", rows: [["Nombre", str("studentName")], ["Cédula", str("studentDocument")], ["Nacimiento", str("birthDate")]] },
               { title: "Representante", rows: [["Nombre", str("guardianName")], ["Cédula", str("guardianDocument")], ["Correo", str("email")], ["Teléfono", str("phone")]] },
-              { title: "Postulación", rows: [["Grado", institution.grades.find((g) => g.id === str("gradeApplied"))?.label ?? "—"], ["Documentos listos", `${docs.length} de ${institution.requirements.length}`]] },
+              { title: "Postulación", rows: [["Grado", institution.grades.find((g) => g.id === str("gradeApplied"))?.label ?? "—"], ["Documentos adjuntos", `${docCount} de ${institution.requirements.length}`]] },
             ].map((sec, idx) => (
               <section key={sec.title} className="glass-inset rounded-lg p-4" aria-labelledby={`rev-${idx}`}>
                 <div className="mb-2 flex items-center justify-between">
@@ -234,6 +275,7 @@ export function AdmissionWizard() {
         )}
 
         {serverError && <Alert tone="danger" role="alert" title="No se pudo enviar">{serverError}</Alert>}
+        <p aria-live="polite" className="sr-only">{progress}</p>
 
         <div className="flex flex-wrap justify-between gap-3 border-t border-line pt-5">
           <Button variant="ghost" onClick={() => go(step - 1)} disabled={step === 0 || submitting}>
@@ -243,7 +285,7 @@ export function AdmissionWizard() {
             <Button type="submit">Continuar <ArrowRight aria-hidden className="size-4" /></Button>
           ) : (
             <Button type="submit" disabled={submitting} aria-busy={submitting}>
-              <Send aria-hidden className="size-4" /> {submitting ? "Enviando…" : "Enviar solicitud"}
+              <Send aria-hidden className="size-4" /> {submitting ? progress || "Enviando…" : "Enviar solicitud"}
             </Button>
           )}
         </div>

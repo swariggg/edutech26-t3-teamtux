@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, ExternalLink, XCircle } from "lucide-react";
 import { getRepository } from "@/data";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Badge } from "@/components/ui/Badge";
 import { StatusChangeForm } from "@/components/admin/StatusChangeForm";
-import { applicationStatusMeta, documentLabel, relationshipLabel } from "@/domain/labels";
-import { formatDate, formatDateTime } from "@/domain/format";
+import { DocumentReviewPanel } from "@/components/admin/DocumentReviewPanel";
+import { ReviewButton } from "@/components/admin/ReviewButton";
+import { EnrollButton } from "@/components/admin/EnrollButton";
+import { applicationStatusMeta, documentLabel, enrollmentStatusMeta, relationshipLabel } from "@/domain/labels";
+import { formatDate, formatDateTime, formatMoney } from "@/domain/format";
 import { gradeLabel } from "@/content/institution";
 
 export const metadata: Metadata = { title: "Detalle de solicitud" };
@@ -15,8 +18,12 @@ export const dynamic = "force-dynamic";
 
 export default async function SolicitudDetalle({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const app = await getRepository().getApplication(id);
+  const repo = getRepository();
+  const app = await repo.getApplication(id);
   if (!app) notFound();
+  const enrollment = await repo.getEnrollmentByApplication(app.id);
+  const enrollmentInstallments = enrollment ? (await repo.listInstallments({ studentId: app.studentId, limit: 100 })).filter((i) => i.enrollmentId === enrollment.id) : [];
+  const enrollmentTotal = enrollmentInstallments.reduce((s, i) => s + i.amount, 0);
   const meta = applicationStatusMeta[app.status];
   return (
     <>
@@ -51,19 +58,56 @@ export default async function SolicitudDetalle({ params }: { params: Promise<{ i
         <GlassCard as="section" aria-labelledby="cambio" className="p-5">
           <h2 id="cambio" className="mb-3 text-lg font-semibold">Cambiar estado</h2>
           <StatusChangeForm id={app.id} current={app.status} />
+          {(enrollment || app.status === "aprobada") && (
+            <div className="mt-5 flex flex-col gap-2 border-t border-line pt-4" aria-labelledby="matricula">
+              <h3 id="matricula" className="font-semibold">Matrícula</h3>
+              {enrollment ? (
+                <dl className="grid gap-1.5 text-sm">
+                  <div className="flex items-center justify-between gap-2"><dt className="text-muted">Código</dt><dd className="font-mono font-semibold">{enrollment.code}</dd></div>
+                  <div className="flex items-center justify-between gap-2"><dt className="text-muted">Estado</dt><dd><Badge tone={enrollmentStatusMeta[enrollment.status].tone}>{enrollmentStatusMeta[enrollment.status].label}</Badge></dd></div>
+                  <div className="flex items-center justify-between gap-2"><dt className="text-muted">Cuotas</dt><dd className="font-medium">{enrollmentInstallments.length} · {formatMoney(enrollmentTotal)}</dd></div>
+                  <dd><Link className="font-medium text-primary underline-offset-4 hover:underline" href={`/admin/matriculas/${enrollment.id}`}>Ver ficha de matrícula y pagos</Link></dd>
+                </dl>
+              ) : (
+                <>
+                  <p className="text-sm text-muted">La solicitud está aprobada pero aún no tiene matrícula.</p>
+                  <EnrollButton id={app.id} />
+                </>
+              )}
+            </div>
+          )}
         </GlassCard>
         <GlassCard as="section" aria-labelledby="docs" className="p-5">
           <h2 id="docs" className="mb-3 text-lg font-semibold">Documentos</h2>
           <ul className="flex flex-col gap-2">
             {app.documents.map((d) => (
-              <li key={d.kind} className="flex items-center gap-2 text-sm">
-                {d.received ? <CheckCircle2 aria-hidden className="size-4 text-success" /> : <XCircle aria-hidden className="size-4 text-danger" />}
+              <li key={d.kind} className="flex min-h-8 items-center gap-2 text-sm">
+                {d.received ? <CheckCircle2 aria-hidden className="size-4 shrink-0 text-success" /> : <XCircle aria-hidden className="size-4 shrink-0 text-danger" />}
                 <span>{documentLabel[d.kind]}</span>
                 {d.received && <span className="sr-only">recibido</span>}
                 {!d.received && <span className="text-muted">(pendiente)</span>}
+                {d.file && (
+                  <a href={`/api/admin/documents/${app.id}/${d.kind}`} target="_blank" rel="noopener noreferrer" className="ml-auto inline-flex min-h-11 items-center gap-1 px-1 font-medium text-primary hover:underline">
+                    Ver<span className="sr-only"> {documentLabel[d.kind]} (se abre en otra pestaña)</span> <ExternalLink aria-hidden className="size-3.5" />
+                  </a>
+                )}
               </li>
             ))}
           </ul>
+        </GlassCard>
+        <GlassCard as="section" aria-labelledby="revision" className="p-5 lg:col-span-3">
+          <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h2 id="revision" className="text-lg font-semibold">Revisión de documentos con IA</h2>
+              <p className="text-sm text-muted">Coherencia con el formulario, calidad de cada documento y capacidad de pago según el estado de cuenta.</p>
+            </div>
+            {app.documents.some((d) => d.file) && <ReviewButton id={app.id} hasReview={Boolean(app.aiReview)} />}
+          </div>
+          {app.aiReview ? (
+            <DocumentReviewPanel review={app.aiReview} />
+          ) : (
+            <p className="text-sm text-muted">{app.documents.some((d) => d.file) ? "Aún no hay revisión. Se genera sola al terminar la subida o puedes iniciarla ahora." : "La familia todavía no ha subido documentos."}</p>
+          )}
         </GlassCard>
         <GlassCard as="section" aria-labelledby="hist" className="p-5 lg:col-span-2">
           <h2 id="hist" className="mb-3 text-lg font-semibold">Historial</h2>

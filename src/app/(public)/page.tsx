@@ -1,5 +1,6 @@
-import { ArrowRight, Bot, ClipboardCheck, CreditCard, FileText, GraduationCap, Search, Sparkles, Wallet } from "lucide-react";
+import { ArrowRight, ClipboardCheck, CreditCard, FileText, GraduationCap, Search, Sparkles, Wallet } from "lucide-react";
 import { OpenAdvisorButton } from "@/components/chat/OpenAdvisorButton";
+import { ClipoIcon } from "@/components/brand/Brand";
 import { ButtonLink } from "@/components/ui/Button";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { institution } from "@/content/institution";
@@ -20,26 +21,26 @@ export default function HomePage() {
             Tu matrícula, <span className="text-primary">sin filas</span> ni incertidumbre.
           </h1>
           <p className="max-w-xl text-lg text-muted">
-            Solicita la admisión en línea, sigue cada etapa con tu código y consulta tus pensiones. Si tienes dudas, nuestro asesor virtual te guía paso a paso.
+            Solicita la admisión en línea, sigue cada etapa con tu código y consulta tus pensiones. Si tienes dudas, {i.assistant.name}, nuestro asistente virtual, te guía paso a paso.
           </p>
           <div className="flex flex-wrap gap-3">
             <ButtonLink href="/admision" size="lg">Solicitar admisión <ArrowRight aria-hidden className="size-5" /></ButtonLink>
-            <OpenAdvisorButton size="lg" variant="secondary"><Bot aria-hidden className="size-5" /> Hablar con el asesor IA</OpenAdvisorButton>
+            <OpenAdvisorButton size="lg" variant="secondary"><ClipoIcon className="size-6" /> Hablar con {i.assistant.name}</OpenAdvisorButton>
           </div>
         </div>
         <GlassCard className="flex flex-col gap-4 p-6 sm:p-8">
           <div className="flex items-center gap-3">
-            <span className="inline-flex size-11 items-center justify-center rounded-full bg-accent/15 text-accent"><Bot aria-hidden className="size-6" /></span>
+            <span className="inline-flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary"><ClipoIcon className="size-8" /></span>
             <div>
-              <p className="font-semibold">Asesor virtual</p>
-              <p className="text-sm text-muted">Disponible 24/7</p>
+              <p className="font-semibold">{i.assistant.name}</p>
+              <p className="text-sm text-muted">Asistente virtual de {i.shortName} · disponible 24/7, también por voz</p>
             </div>
           </div>
-          <div className="glass-inset rounded-lg p-4 text-sm">¿Qué documentos necesito para inscribir a mi hija en 4.º EGB?</div>
+          <div className="glass-inset rounded-lg p-4 text-sm">¿Qué documentos necesito para inscribir a mi hija en 8.º EGB?</div>
           <div className="rounded-lg bg-primary/10 p-4 text-sm">
-            Necesitas la cédula del estudiante y del representante, la partida de nacimiento, el certificado de notas y una foto tamaño carné. Puedes empezar en <strong>/admision</strong>.
+            ¡Claro! Necesitas la cédula del estudiante y del representante, la partida de nacimiento, el certificado de notas, una foto tamaño carné y tu estado de cuenta. Los subes en línea desde <strong>Admisión</strong>.
           </div>
-          <OpenAdvisorButton variant="ghost" className="self-start text-primary">Probar el asesor <ArrowRight aria-hidden className="size-4" /></OpenAdvisorButton>
+          <OpenAdvisorButton variant="ghost" className="self-start text-primary">Conversar con {i.assistant.name} <ArrowRight aria-hidden className="size-4" /></OpenAdvisorButton>
         </GlassCard>
       </section>
 
@@ -85,7 +86,7 @@ export default function HomePage() {
       <section aria-labelledby="faq-title" className="grid gap-8 lg:grid-cols-[1fr_1.4fr]">
         <div className="flex flex-col gap-4">
           <h2 id="faq-title" className="text-3xl font-semibold">Preguntas frecuentes</h2>
-          <p className="text-muted">¿No encuentras tu respuesta? Pregúntale al asesor virtual o escribe a {i.contact.secretaria.email}.</p>
+          <p className="text-muted">¿No encuentras tu respuesta? Pregúntale a {i.assistant.name} o escribe a {i.contact.secretaria.email}.</p>
           <GlassCard className="p-5">
             <h3 className="mb-3 font-semibold">Fechas clave</h3>
             <dl className="grid gap-2 text-sm">

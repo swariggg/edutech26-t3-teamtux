@@ -23,6 +23,9 @@ export interface FamilyPrediction {
 }
 
 export interface MlDashboard {
+  /** Fecha de corte (fecha de la app) y año lectivo de los datos leídos de la base. */
+  asOf: string;
+  academicYear: string;
   evalMonths: string[];
   predictMonth: string;
   window: number;
@@ -110,6 +113,8 @@ export async function getMlDashboard(): Promise<MlDashboard> {
   predictions.sort((a, b) => b.riesgo - a.riesgo);
 
   return {
+    asOf: ds.asOf,
+    academicYear: ds.academicYear,
     evalMonths,
     predictMonth,
     window: HISTORY_WINDOW,

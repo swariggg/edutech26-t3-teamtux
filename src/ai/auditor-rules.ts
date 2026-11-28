@@ -1,3 +1,4 @@
+import { PUNCTUALITY_RULES, classifyMonth, punctualityRecord } from "@/domain/loyalty";
 import type { AuditFinding } from "@/domain/types";
 import type { AuditSnapshot } from "@/data/repository";
 import { applicationStatusMeta } from "@/domain/labels";
@@ -45,6 +46,36 @@ export function runRules(s: AuditSnapshot, scope: "todo" | "solicitudes" | "pago
           title: `${a.trackingCode}: ${missing.length} documento(s) faltante(s)`,
           detail: `La solicitud avanza («${applicationStatusMeta[a.status].label}») sin todos los documentos obligatorios.`,
           recommendation: "Solicitar los documentos faltantes antes de avanzar.",
+        });
+      }
+    }
+    // Revisión de documentos con IA: inconsistencias graves, riesgo de pago y posibles becas.
+    for (const a of s.applications) {
+      const r = a.aiReview;
+      if (!r) continue;
+      const serious = r.inconsistencies.filter((x) => x.severity === "alta");
+      if (serious.length > 0) {
+        add({
+          severity: "alta", category: "inconsistencia", entity: "application", entityId: a.id,
+          title: `${a.trackingCode}: ${serious.length} inconsistencia(s) grave(s) en los documentos`,
+          detail: serious.map((x) => x.title).join(" · "),
+          recommendation: "Revisar los documentos en el detalle de la solicitud y pedir a la familia que los corrija antes de avanzar.",
+        });
+      }
+      if (r.financial.capacity === "baja") {
+        add({
+          severity: "media", category: "riesgo_pago", entity: "application", entityId: a.id,
+          title: `${a.trackingCode}: capacidad de pago baja según el estado de cuenta`,
+          detail: `La pensión equivale al ${r.financial.pensionToIncomePct ?? "?"}% del ingreso mensual promedio (regularidad: ${r.financial.incomeRegularity}).`,
+          recommendation: r.financial.recommendation || "Acordar un plan de pago antes de matricular.",
+        });
+      }
+      if (r.financial.scholarshipCandidate) {
+        add({
+          severity: "baja", category: "oportunidad", entity: "application", entityId: a.id,
+          title: `${a.trackingCode}: posible candidata a beca`,
+          detail: r.financial.scholarshipReason ?? "Ingresos ajustados con buen manejo de su cuenta.",
+          recommendation: "Presentar el caso al comité de becas.",
         });
       }
     }
@@ -97,6 +128,39 @@ export function runRules(s: AuditSnapshot, scope: "todo" | "solicitudes" | "pago
         title: `${v.name}: ${v.count} cuota(s) vencida(s), ${formatMoney(v.total)}`,
         detail: `La cuota más antigua venció hace ${days} días (${formatDate(v.oldest)}).`,
         recommendation: days > 60 ? "Contactar a la familia y proponer un plan de pagos." : "Enviar recordatorio de pago.",
+      });
+    }
+    // Fidelización (récord de puntualidad, src/domain/loyalty.ts): pueden llegar al 80 % sin meses impagos → beca del 20 %.
+    // Riesgo crítico (≤25 % de puntualidad en lo vencido) → tomar medidas.
+    const today = now.toISOString().slice(0, 10);
+    const pensions = new Map<string, { name: string; list: typeof s.installments }>();
+    for (const i of s.installments) {
+      if (i.concept !== "pension" || i.status === "anulada") continue;
+      const cur = pensions.get(i.enrollmentId) ?? { name: i.studentName, list: [] };
+      cur.list.push(i);
+      pensions.set(i.enrollmentId, cur);
+    }
+    const records = [...pensions.values()].map((v) => ({
+      name: v.name,
+      r: punctualityRecord([...v.list].sort((a, b) => a.dueDate.localeCompare(b.dueDate)).map((i) => classifyMonth(i, today))),
+    }));
+    const names = (l: typeof records) => `${l.slice(0, 8).map((v) => v.name).join(", ")}${l.length > 8 ? ` y ${l.length - 8} más` : ""}`;
+    const loyal = records.filter((v) => v.r.due >= 3 && (v.r.scholarshipOnTrack || v.r.scholarshipEarned)).sort((a, b) => (b.r.punctualityPct ?? 0) - (a.r.punctualityPct ?? 0));
+    if (loyal.length > 0) {
+      add({
+        severity: "baja", category: "oportunidad", entity: "system", entityId: "fidelizacion-puntualidad",
+        title: `${loyal.length} estudiante(s) en camino a la beca del ${PUNCTUALITY_RULES.scholarshipDiscountPct} % por puntualidad`,
+        detail: `Pueden llegar al ${PUNCTUALITY_RULES.scholarshipMinPct} % de récord sin meses impagos: ${names(loyal)}.`,
+        recommendation: "Avisar a estas familias de que van en camino a la beca para reforzar la puntualidad (ver Pagos → Récord de puntualidad).",
+      });
+    }
+    const critical = records.filter((v) => v.r.risk === "critico");
+    if (critical.length > 0) {
+      add({
+        severity: "alta", category: "riesgo_pago", entity: "system", entityId: "riesgo-critico-puntualidad",
+        title: `${critical.length} estudiante(s) con riesgo de pago crítico (puntualidad ≤ 25 %)`,
+        detail: `Familias con la mayoría de sus pensiones vencidas sin pagar: ${names(critical)}.`,
+        recommendation: "Tomar medidas: llamar a la familia y acordar un plan de pago antes de que la deuda crezca.",
       });
     }
     for (const i of s.installments) {

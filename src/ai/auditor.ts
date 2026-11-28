@@ -28,6 +28,16 @@ export async function runAudit(repo: Repository, scope: "todo" | "solicitudes" |
     applications: snapshot.applications.slice(0, 120).map((a) => ({
       id: a.id, code: a.trackingCode, status: a.status, grade: a.gradeApplied, updatedAt: a.updatedAt, interviewAt: a.interviewAt ?? null,
       missingDocs: a.documents.filter((d) => !d.received).map((d) => d.kind),
+      // Resultado de la revisión de documentos con IA (sin datos personales).
+      docReview: a.aiReview
+        ? {
+            inconsistencies: a.aiReview.inconsistencies.map((x) => ({ severity: x.severity, documents: x.documents })),
+            paymentCapacity: a.aiReview.financial.capacity,
+            pensionToIncomePct: a.aiReview.financial.pensionToIncomePct,
+            mlRisk: a.aiReview.mlRisk?.level ?? null,
+            scholarshipCandidate: a.aiReview.financial.scholarshipCandidate,
+          }
+        : null,
     })),
     enrollments: snapshot.enrollments.slice(0, 120).map((e) => ({ id: e.id, code: e.code, status: e.status, applicationId: e.applicationId ?? null })),
     overdueInstallments: snapshot.installments

@@ -1,4 +1,5 @@
 "use client";
+import { NodoMark } from "@/components/brand/Brand";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -13,7 +14,7 @@ export const PUBLIC_NAV = [
   { href: "/admision", label: "Admisión" },
   { href: "/estado", label: "Estado" },
   { href: "/pagos", label: "Pagos" },
-  { href: "/asesor", label: "Asesor IA" },
+  { href: "/asesor", label: "Clipo IA" },
 ] as const;
 
 function isActive(pathname: string, href: string) {
@@ -79,7 +80,7 @@ export function PublicHeader() {
     <header className="sticky top-0 z-40 px-4 pt-3 sm:px-6">
       <div className="glass glass-strong mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-xl px-3 py-2 sm:px-4">
         <Link href="/" className="flex min-h-11 items-center gap-2 rounded-md px-1 font-heading text-lg font-semibold">
-          <span aria-hidden className="inline-flex size-8 items-center justify-center rounded-lg bg-primary font-bold text-on-primary">8</span>
+          <NodoMark />
           <span>{institution.shortName}</span>
         </Link>
         <nav aria-label="Principal" className="hidden md:block">

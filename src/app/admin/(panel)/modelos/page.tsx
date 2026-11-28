@@ -6,16 +6,21 @@ import { MlCharts } from "@/components/ml/MlCharts";
 import { ConfusionMatrices } from "@/components/ml/ConfusionMatrices";
 import { FamilyPredictions } from "@/components/ml/FamilyPredictions";
 import { ModelSimulator } from "@/components/ml/ModelSimulator";
+import { NewFamiliesPanel } from "@/components/ml/NewFamiliesPanel";
+import { getNewFamilies } from "@/ml/new-families";
+import { institution } from "@/content/institution";
 import { getMlDashboard, TRAIN_MONTHS } from "@/ml/dashboard";
 import { MODEL_IDS, MODEL_META } from "@/ml/inference";
 import { pct } from "@/ml/labels";
-import { formatMonth } from "@/domain/format";
+import { formatDate, formatMonth } from "@/domain/format";
+import { getRepository } from "@/data";
 
 export const metadata: Metadata = { title: "Modelos predictivos" };
 export const dynamic = "force-dynamic";
 
 export default async function ModelosPage() {
-  const data = await getMlDashboard();
+  const [data, newFamilies] = await Promise.all([getMlDashboard(), getNewFamilies()]);
+  const source = getRepository().kind === "supabase" ? "Supabase" : "modo demostración";
   const month = formatMonth(data.predictMonth);
   const view = { ...data, predictMonth: month };
   const best = MODEL_IDS.reduce((b, id) => (data.metrics[id].macroF1 > data.metrics[b].macroF1 ? id : b));
@@ -30,6 +35,10 @@ export default async function ModelosPage() {
         <p className="text-muted">
           Tres clasificadores predicen si cada familia pagará la pensión <strong>puntual</strong>, <strong>tarde</strong> (después del día 10) o <strong>no pagará</strong> el mes siguiente,
           a partir de sus {data.window} meses previos. Entrenados con {TRAIN_MONTHS.map(formatMonth).join(" y ")}; evaluados con {data.evalMonths.map(formatMonth).join(" y ")}; pronóstico para {month}.
+        </p>
+        <p className="text-sm text-muted">
+          Datos en vivo de la base ({source}): año lectivo {data.academicYear}, corte al {formatDate(data.asOf)}. Cada pago que registra colecturía, n8n o la familia
+          actualiza la evaluación y el pronóstico. Las matrículas del año siguiente aún no tienen historial: aparecen abajo, en «Familias nuevas».
         </p>
       </div>
 
@@ -49,6 +58,7 @@ export default async function ModelosPage() {
       <MlCharts data={view} />
       <ConfusionMatrices data={data} />
       <FamilyPredictions rows={data.predictions} month={month} />
+      <NewFamiliesPanel rows={newFamilies} academicYear={institution.academicYear} />
       <ModelSimulator />
 
       <section aria-labelledby="ficha" className="glass glass-strong flex flex-col gap-2 rounded-xl p-5 text-sm">
@@ -56,11 +66,11 @@ export default async function ModelosPage() {
         <ul className="list-disc space-y-1 pl-5 text-muted">
           <li>Origen: <code>Modelos/*.joblib</code> (scikit-learn 1.6.1), exportados a <code>src/ml/modelos.json</code> con <code>Modelos/exportar_modelos.py</code> e inferidos en TypeScript (verificado contra <code>predict_proba</code> de sklearn: error máximo &lt; 1e-6).</li>
           <li>Unidad: una familia (representante) en un mes. Variables: pensiones y valor del mes; pensiones del historial; tasas de puntualidad, tardanza e incumplimiento en el historial. La regresión logística usa además <code>meses_historial</code>.</li>
-          <li>Etiqueta real: el peor resultado entre los hijos de la familia en ese mes (incumplimiento &gt; tardío &gt; puntual).</li>
+          <li>Etiqueta real: el peor resultado entre los hijos de la familia en ese mes (incumplimiento &gt; tardío &gt; puntual). Tardío = pagado después del vencimiento (día 10).</li>
           {MODEL_IDS.map((id) => (
             <li key={id}>{MODEL_META[id].label}: {Object.entries(data.params[id]).map(([k, v]) => `${k}=${String(v)}`).join(", ")}.</li>
           ))}
-          <li>Datos: <code>dataset-ficticio-colegio</code> — todos sintéticos, no corresponden a personas reales.</li>
+          <li>Datos: matrículas y pensiones del año {data.academicYear} leídas de la base de la app ({source}), sembrada desde <code>dataset-ficticio-colegio</code> — todos sintéticos, no corresponden a personas reales. Con los datos originales, las variables reproducen exactamente las del entrenamiento (mismas medias del StandardScaler).</li>
         </ul>
       </section>
     </>

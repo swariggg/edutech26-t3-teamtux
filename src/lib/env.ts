@@ -24,7 +24,7 @@ const raw = parsed.success ? parsed.data : ({} as z.infer<typeof EnvSchema>);
 export const DEFAULT_MODEL = "claude-opus-5-5";
 
 export const env = {
-  appName: raw.NEXT_PUBLIC_APP_NAME ?? "Eight Academy",
+  appName: raw.NEXT_PUBLIC_APP_NAME ?? "Nodo",
   supabaseUrl: raw.SUPABASE_URL,
   supabaseServiceRoleKey: raw.SUPABASE_SERVICE_ROLE_KEY,
   anthropicApiKey: raw.ANTHROPIC_API_KEY,

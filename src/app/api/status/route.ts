@@ -14,7 +14,7 @@ const NEXT_STEPS: Record<ApplicationStatus, string> = {
   en_revision: "Estamos revisando tus documentos. Te contactaremos si falta algo.",
   documentos_pendientes: "Entrega los documentos pendientes en secretaría o por correo para continuar.",
   entrevista_agendada: "Asiste a la entrevista con el estudiante en la fecha indicada.",
-  aprobada: "¡Felicidades! Acércate a colecturía o paga la matrícula para completar la inscripción.",
+  aprobada: "¡Felicidades! Ya tienes matrícula: paga la cuota de matrícula antes de la fecha indicada para completar la inscripción. Con tu código de matrícula y tu cédula puedes ver tus pagos.",
   rechazada: "Lamentamos no poder ofrecer un cupo. Puedes escribir a secretaría para más información.",
   lista_espera: "Estás en lista de espera. Te avisaremos si se libera un cupo.",
 };
@@ -26,13 +26,17 @@ export async function POST(req: Request) {
   if ("response" in parsed) return parsed.response;
   const { trackingCode, guardianDocument } = parsed.data;
   if (lookupBlocked("status", trackingCode)) return jsonError("Demasiados intentos fallidos para este código. Intenta más tarde o escribe a secretaría.", 429);
-  const app = await getRepository().findApplicationByTracking(trackingCode, guardianDocument);
+  const repo = getRepository();
+  const app = await repo.findApplicationByTracking(trackingCode, guardianDocument);
   if (!app) {
     recordLookupFailure("status", trackingCode);
     return jsonError("No encontramos una solicitud con esos datos. Revisa el código y la cédula.", 404);
   }
+  // Solo quien ya demostró ser el representante (código + cédula) ve el código de matrícula.
+  const enrollment = app.status === "aprobada" ? await repo.getEnrollmentByApplication(app.id) : null;
   // Respuesta mínima: sin datos de contacto, cédulas ni notas internas.
   return NextResponse.json({
+    enrollmentCode: enrollment?.code,
     trackingCode: app.trackingCode,
     studentFirstName: app.student.fullName.split(" ")[0],
     grade: gradeLabel(app.gradeApplied),

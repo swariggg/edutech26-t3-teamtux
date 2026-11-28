@@ -3,25 +3,33 @@
 /* Dark variant controlado por data-theme en <html> */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* ===== Tokens semánticos (design-system/eight-academy/DIRECTION.md) ===== */
+/* ===== Tokens semánticos — identidad NODO =====
+   Paleta de marca: Azul profundo #063F5C · Celeste #419EBD · Aqua #9FE7F5 · Naranja #F27F0C · Amarillo #F7AD1A.
+   Los tonos de texto e íconos se ajustaron para cumplir WCAG (texto ≥ 4.5:1, íconos y foco ≥ 3:1) en claro y oscuro. */
 :root {
   color-scheme: light;
-  --bg: #eaf0f4;
-  --bg-aurora-1: #b9dce6;
-  --bg-aurora-2: #cfe3d8;
-  --fg: #0f1e2e;
-  --fg-muted: #4a5b6c;
-  --primary: #0e6e8c;
+  --brand-deep: #063f5c;
+  --brand-sky: #419ebd;
+  --brand-aqua: #9fe7f5;
+  --brand-orange: #f27f0c;
+  --brand-yellow: #f7ad1a;
+  --bg: #eef6f9;
+  --bg-aurora-1: #bfeaf4;
+  --bg-aurora-2: #fde3b4;
+  --fg: #06283b;
+  --fg-muted: #3d5a6a;
+  --primary: #063f5c;
   --on-primary: #ffffff;
-  --accent: #2f9e83;
+  /* Naranja de marca, un punto más profundo para íconos sobre fondo claro (≥ 3:1). */
+  --accent: #d96a00;
   --success: #1f7a55;
-  --warning: #9a5b00;
+  --warning: #9a5300;
   /* Tono de error poco saturado a propósito (sensibilidad sensorial). Mantiene texto >= 4.5:1. */
   --danger: #8f4a52;
-  --info: #0e6e8c;
-  --ring: #0e6e8c;
-  --surface-solid: #f6f8fa;
-  --border-subtle: rgb(15 30 46 / 0.12);
+  --info: #1b6f8e;
+  --ring: #1b6f8e;
+  --surface-solid: #f7fbfc;
+  --border-subtle: rgb(6 63 92 / 0.14);
 
   --glass-bg: rgb(255 255 255 / 0.55);
   --glass-bg-strong: rgb(255 255 255 / 0.78);
@@ -29,7 +37,7 @@
   --glass-highlight: linear-gradient(180deg, rgb(255 255 255 / 0.7), rgb(255 255 255 / 0) 42%);
   --glass-blur: 18px;
   --glass-saturate: 160%;
-  --glass-shadow: 0 8px 32px rgb(15 30 46 / 0.1);
+  --glass-shadow: 0 8px 32px rgb(6 63 92 / 0.1);
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -55,25 +63,25 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0b1420;
-  --bg-aurora-1: #123a4a;
-  --bg-aurora-2: #14322b;
-  --fg: #e3eaf1;
-  --fg-muted: #9aabbd;
-  --primary: #5cc8e6;
-  --on-primary: #06202b;
-  --accent: #6ee7c5;
+  --bg: #051824;
+  --bg-aurora-1: #0a4462;
+  --bg-aurora-2: #3a2a10;
+  --fg: #e6f4f8;
+  --fg-muted: #9dbaca;
+  --primary: #9fe7f5;
+  --on-primary: #063f5c;
+  --accent: #f7ad1a;
   --success: #5fd3a0;
-  --warning: #f2b75b;
-  --danger: #d9a5aa;
-  --info: #5cc8e6;
-  --ring: #7fd6ee;
-  --surface-solid: #101b2a;
-  --border-subtle: rgb(148 180 210 / 0.16);
+  --warning: #f5b54a;
+  --danger: #e3aeb3;
+  --info: #7fd3ea;
+  --ring: #9fe7f5;
+  --surface-solid: #0b2433;
+  --border-subtle: rgb(159 231 245 / 0.14);
 
-  --glass-bg: rgb(20 32 48 / 0.55);
-  --glass-bg-strong: rgb(20 32 48 / 0.82);
-  --glass-border: rgb(148 180 210 / 0.18);
+  --glass-bg: rgb(10 36 52 / 0.55);
+  --glass-bg-strong: rgb(10 36 52 / 0.84);
+  --glass-border: rgb(159 231 245 / 0.16);
   --glass-highlight: linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0) 42%);
   --glass-shadow: 0 8px 32px rgb(0 0 0 / 0.35);
   --model-1: #338ced;
@@ -85,12 +93,12 @@
 [data-contrast="high"] {
   --fg: #000000;
   --fg-muted: #1f2a36;
-  --primary: #004a63;
-  --accent: #0e5240;
+  --primary: #04304a;
+  --accent: #8a4300;
   --success: #14583c;
   --warning: #6b3f00;
   --danger: #6e2a35;
-  --info: #004a63;
+  --info: #04304a;
   --ring: #000000;
   --border-subtle: #000000;
   --glass-border: #000000;
@@ -98,13 +106,13 @@
 [data-theme="dark"][data-contrast="high"] {
   --fg: #ffffff;
   --fg-muted: #dbe5ee;
-  --primary: #9fe3f5;
-  --on-primary: #00141c;
-  --accent: #a6f5de;
+  --primary: #c4f2fb;
+  --on-primary: #021a27;
+  --accent: #ffd27a;
   --success: #8ff0c4;
   --warning: #ffd591;
   --danger: #f0c6ca;
-  --info: #9fe3f5;
+  --info: #c4f2fb;
   --ring: #ffffff;
   --border-subtle: #ffffff;
   --glass-border: #ffffff;

@@ -18,7 +18,15 @@ export function StatusChangeForm({ id, current }: { id: string; current: Applica
     setBusy(true); setMsg(null);
     try {
       const res = await fetch(`/api/admin/applications/${id}/status`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status, note: note || undefined }) });
-      if (res.ok) { setMsg({ ok: true, text: "Estado actualizado y registrado en la bitácora." }); setNote(""); router.refresh(); }
+      if (res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { enrollmentCode?: string; enrollmentCreated?: boolean; enrollmentError?: string };
+        setMsg(
+          data.enrollmentError ? { ok: false, text: data.enrollmentError }
+          : data.enrollmentCode ? { ok: true, text: data.enrollmentCreated ? `Solicitud aprobada. Se creó la matrícula ${data.enrollmentCode} con su cuota de matrícula y las pensiones del año; la familia recibirá el aviso por correo.` : `Solicitud aprobada. Ya tenía la matrícula ${data.enrollmentCode}.` }
+          : { ok: true, text: "Estado actualizado y registrado en la bitácora." },
+        );
+        setNote(""); router.refresh();
+      }
       else setMsg({ ok: false, text: res.status === 401 ? "Tu sesión expiró. Vuelve a ingresar." : "No se pudo actualizar el estado." });
     } catch {
       setMsg({ ok: false, text: "Sin conexión con el servidor. Inténtalo de nuevo." });

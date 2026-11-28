@@ -45,7 +45,7 @@ const intents: { keys: string[]; answer: () => string }[] = [
   {
     keys: ["hola", "buenas", "buenos", "saludos", "hey"],
     answer: () =>
-      `¡Hola! Soy el asesor virtual de ${i.name}. Puedo ayudarte con requisitos de admisión, costos, fechas, el estado de tu solicitud y tus pagos. ¿Qué necesitas?`,
+      `¡Hola! Soy ${i.assistant.name}, el asistente virtual de ${i.shortName}. Puedo ayudarte con requisitos de admisión, costos, fechas, el estado de tu solicitud y tus pagos. ¿Qué necesitas?`,
   },
 ];
 

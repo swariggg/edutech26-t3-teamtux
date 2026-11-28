@@ -3,6 +3,7 @@ import { PaymentsLookupInput } from "@/domain/schemas";
 import { getRepository } from "@/data";
 import { gradeLabel } from "@/content/institution";
 import { clientIp, jsonError, parseBody } from "@/lib/http";
+import { nowISO } from "@/lib/clock";
 import { lookupBlocked, rateLimit, recordLookupFailure } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -25,12 +26,14 @@ export async function POST(req: Request) {
     studentFirstName: found.student.fullName.split(" ")[0],
     enrollmentCode: found.enrollment.code,
     grade: gradeLabel(found.enrollment.grade),
+    /** Fecha de la app (AAAA-MM-DD) para clasificar puntual / atrasado / sin pagar igual que en administración. */
+    today: nowISO().slice(0, 10),
     summary: {
       total: sum((i) => i.amount),
       paid: sum((i) => i.amountPaid),
       pending: sum((i) => (i.status === "pendiente" || i.status === "parcial" ? i.amount - i.amountPaid : 0)),
       overdue: sum((i) => (i.status === "vencida" ? i.amount - i.amountPaid : 0)),
     },
-    installments: items.map((i) => ({ id: i.id, concept: i.concept, description: i.description, amount: i.amount, amountPaid: i.amountPaid, dueDate: i.dueDate, status: i.status })),
+    installments: items.map((i) => ({ id: i.id, concept: i.concept, description: i.description, amount: i.amount, amountPaid: i.amountPaid, dueDate: i.dueDate, status: i.status, paidAt: i.paidAt?.slice(0, 10) ?? null, demo: Boolean(i.reference?.startsWith("DEMO-")) })),
   }, { headers: { "Cache-Control": "no-store" } });
 }

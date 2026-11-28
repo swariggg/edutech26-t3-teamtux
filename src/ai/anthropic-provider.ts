@@ -3,7 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import type { z } from "zod";
 import { env } from "@/lib/env";
-import type { ChatTurn, LLMProvider } from "./llm";
+import type { Attachment, ChatTurn, LLMProvider } from "./llm";
 
 const REFUSAL_MSG = "Lo siento, no puedo ayudarte con esa solicitud. Si tu consulta es sobre admisiones, matrículas o pagos, intenta reformularla o escribe a secretaría.";
 const ERROR_MSG = "Tuve un problema para responder en este momento. Intenta de nuevo en unos segundos o contacta a secretaría.";
@@ -52,12 +52,19 @@ export class AnthropicProvider implements LLMProvider {
     }
   }
 
-  async generateJSON<T>({ system, prompt, schema }: { system: string; prompt: string; schema: z.ZodType<T> }): Promise<T> {
+  async generateJSON<T>({ system, prompt, schema, attachments = [], maxTokens = 16000 }: { system: string; prompt: string; schema: z.ZodType<T>; attachments?: Attachment[]; maxTokens?: number }): Promise<T> {
+    // Cada archivo va precedido por su etiqueta; el texto con la tarea va al final (mejor con documentos largos).
+    const files = attachments.flatMap((a) => [
+      { type: "text" as const, text: a.label },
+      a.mediaType === "application/pdf"
+        ? { type: "document" as const, source: { type: "base64" as const, media_type: a.mediaType, data: a.data } }
+        : { type: "image" as const, source: { type: "base64" as const, media_type: a.mediaType, data: a.data } },
+    ]);
     const response = await this.client.messages.parse({
       model: this.model,
-      max_tokens: 16000,
+      max_tokens: maxTokens,
       system,
-      messages: [{ role: "user", content: prompt }],
+      messages: [{ role: "user", content: files.length ? [...files, { type: "text" as const, text: prompt }] : prompt }],
       output_config: { effort: "medium", format: zodOutputFormat(schema) },
     });
     if (response.stop_reason === "refusal") throw new Error("El modelo rechazó la auditoría");

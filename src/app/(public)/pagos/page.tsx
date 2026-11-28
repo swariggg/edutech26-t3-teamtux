@@ -3,11 +3,16 @@ import { PaymentsLookup } from "@/components/payments/PaymentsLookup";
 import { Alert } from "@/components/ui/Alert";
 import { getRepository } from "@/data";
 import { institution } from "@/content/institution";
+import { PaymentsLookupInput } from "@/domain/schemas";
 
 export const metadata: Metadata = { title: "Mis pagos" };
 export const dynamic = "force-dynamic";
 
-export default function PagosPage() {
+export default async function PagosPage({ searchParams }: { searchParams: Promise<{ estudiante?: string }> }) {
+  const { estudiante } = await searchParams;
+  // Enlace del correo de matrícula: /pagos?estudiante=MAT-2026-XXXXXX (solo se precarga si tiene un formato válido).
+  const parsed = PaymentsLookupInput.shape.studentQuery.safeParse(estudiante ?? "");
+  const initialStudent = parsed.success ? parsed.data : "";
   const demo = getRepository().kind === "mock";
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
@@ -16,7 +21,7 @@ export default function PagosPage() {
         <p className="text-muted">Las pensiones vencen el día {institution.fees.dueDay} de cada mes.</p>
       </header>
       {demo && <Alert tone="info" title="Modo demostración">Prueba con el estudiante <strong>EST-001</strong> y el representante <strong>REP-001</strong> (datos del dataset ficticio).</Alert>}
-      <PaymentsLookup />
+      <PaymentsLookup initialStudent={initialStudent} />
     </div>
   );
 }

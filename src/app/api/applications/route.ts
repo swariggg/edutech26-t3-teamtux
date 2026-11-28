@@ -2,6 +2,7 @@ import { NextResponse, after } from "next/server";
 import { ApplicationInput } from "@/domain/schemas";
 import { getRepository } from "@/data";
 import { isConflictError } from "@/data/repository";
+import { createUploadToken } from "@/data/storage";
 import { logAudit } from "@/lib/audit";
 import { emitEvent } from "@/lib/n8n";
 import { notifyTrackingCodes, publicBaseUrl } from "@/lib/notifications";
@@ -23,7 +24,8 @@ export async function POST(req: Request) {
     // Copia del código al correo / WhatsApp del representante (vía n8n), después de responder: no demora el envío del formulario.
     const baseUrl = publicBaseUrl(req);
     after(() => notifyTrackingCodes(repo, [app], "created", baseUrl));
-    return NextResponse.json({ trackingCode: app.trackingCode }, { status: 201 });
+    // uploadToken: permiso de 2 h para adjuntar los documentos a ESTA solicitud (subida directa al almacenamiento).
+    return NextResponse.json({ trackingCode: app.trackingCode, uploadToken: createUploadToken(app.id) }, { status: 201 });
   } catch (error) {
     // Mensaje genérico en conflictos: no revela si la cédula del estudiante ya existe.
     if (isConflictError(error)) return jsonError(error.message, 409);

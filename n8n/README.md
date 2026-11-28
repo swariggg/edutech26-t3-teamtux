@@ -24,7 +24,7 @@ Respuestas: `200 {"ok":true}` · `400` datos inválidos · `401` secreto incorre
 Si `N8N_OUTBOUND_WEBHOOK_URL` está definido, la app hace `POST` (con `x-webhook-secret` si existe) con:
 
 ```json
-{ "event": "application.created | application.status_changed | payment.received | tracking_code.notify", "occurredAt": "ISO-8601", "data": { } }
+{ "event": "application.created | application.status_changed | payment.received | tracking_code.notify | enrollment.created | payment.reminder", "occurredAt": "ISO-8601", "data": { } }
 ```
 
 `tracking_code.notify` se emite al enviar una solicitud (`reason: "created"`) y cuando la familia usa «¿Olvidaste tu código?» en `/estado` (`reason: "resend"`):
@@ -39,20 +39,54 @@ Si `N8N_OUTBOUND_WEBHOOK_URL` está definido, la app hace `POST` (con `x-webhook
 } }
 ```
 
+`enrollment.created` se emite cuando secretaría **aprueba** una solicitud y la app crea la matrícula (cuota de matrícula + 10 pensiones):
+
+```json
+{ "event": "enrollment.created", "data": {
+  "guardian": { "name": "…", "email": "…", "phone": "0990000000" },
+  "student": { "firstName": "…", "grade": "8.º EGB" },
+  "trackingCode": "ADM-2026-K7P2QX",
+  "enrollmentCode": "MAT-2026-H4KQ7Z",
+  "academicYear": "2026-2027",
+  "fees": { "enrollment": "$150,00", "enrollmentDue": "15 feb 2026", "monthly": "$185,00", "months": 10, "dueDay": 10 },
+  "institution": { "name": "Eight Academy", "email": "…", "phone": "…" },
+  "paymentsUrl": "https://<app>/pagos?estudiante=MAT-2026-H4KQ7Z",
+  "statusUrl": "https://<app>/estado?codigo=ADM-2026-K7P2QX"
+} }
+```
+
+`payment.reminder` es el recordatorio de **la próxima cuota sin pagar** de una matrícula. Se emite con «Enviar recordatorio de pago» (ficha de matrícula), «Enviar recordatorios de pago ahora» (Pagos) o el disparo diario. `kind` puede ser `matricula`, `por_vencer`, `vencida` o `mora` (más de 30 días), y el texto cambia según el récord de puntualidad:
+
+```json
+{ "event": "payment.reminder", "data": {
+  "kind": "por_vencer",
+  "guardian": { "name": "…", "email": "…", "phone": "0990000000" },
+  "student": { "firstName": "…", "grade": "8.º EGB" },
+  "enrollmentCode": "MAT-2026-H4KQ7Z",
+  "installment": { "description": "Pensión 2026-09", "month": "sept 26", "amount": "$185,00", "dueDate": "10 sept 2026", "days": 3 },
+  "record": { "pct": 60, "missing": 20, "onTrack": true, "earned": false, "unpaid": 0 },
+  "scholarship": { "minPct": 80, "discountPct": 20 },
+  "institution": { "name": "Eight Academy", "email": "…", "phone": "…" },
+  "paymentsUrl": "https://<app>/pagos?estudiante=MAT-2026-H4KQ7Z"
+} }
+```
+
+Disparo diario: el nodo «Cada día 08:00» llama `POST {APP_URL}/api/reminders/run` con `x-webhook-secret`. La app envía un `payment.reminder` por cada familia con correo cuya cuota vence en 5 días o ya venció (la matrícula siempre), sin repetir en 20 h y con un máximo de 50 por corrida. Las familias del dataset no tienen correo y nunca reciben recordatorios. El nodo viene **desactivado**: actívalo cuando la app esté publicada y reemplaza `TU-APP` por el dominio real.
+
 ## Flujos previstos
 
 1. **Admisión:** al cambiar el estado, la IA redacta el aviso y n8n lo envía a la familia.
 2. **Recordatorios de pago (diario):** cuotas que vencen en 3 días o ya vencidas → la IA redacta → email/WhatsApp → `reminder.sent` de vuelta a la app.
 3. **Resumen del auditor (semanal):** llama a `/api/admin/auditor` (requerirá un token de servicio cuando exista Supabase Auth).
 
-## Flujo implementado: código de seguimiento (`workflows/codigo-seguimiento.json`)
+## Flujo implementado: avisos a familias (`workflows/codigo-seguimiento.json`)
 
 Envía el código de seguimiento al representante para que no dependa de anotarlo, y reenvía sus códigos cuando los olvida.
 
 ```
 Webhook (POST /webhook/eight-academy-eventos, Header Auth x-webhook-secret)
-  → ¿event = tracking_code.notify?
-  → Armar mensaje (Code: HTML escapado + texto de WhatsApp; el enlace viene en statusUrl)
+  → ¿event = tracking_code.notify, enrollment.created o payment.reminder?
+  → Armar mensaje (Code: según el evento, código de seguimiento o «solicitud aprobada + código de matrícula»; HTML escapado + texto de WhatsApp)
   → Enviar correo (Gmail, 3 reintentos)   [alternativa: SMTP, desactivado]
   → ¿Tiene teléfono? → Enviar WhatsApp (Cloud API; desactivado por defecto)
 ```
