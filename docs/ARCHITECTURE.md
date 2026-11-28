@@ -12,6 +12,6 @@
 ## Próximos pasos
 
 1. Contexto real de la institución en `src/content/institution.ts`.
-2. Asesor: herramientas (consultar estado/pagos con verificación), voz, memoria de sesión.
+2. Asesor: herramientas (consultar estado/pagos con verificación) y memoria de sesión.
 3. Supabase Auth para el personal y portal de familias.
-4. Flujos n8n de avisos y recordatorios.
+4. Publicar la app y activar el recordatorio diario de n8n.

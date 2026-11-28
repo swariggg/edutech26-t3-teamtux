@@ -1,10 +1,12 @@
-# Trabajo previo y componen
+# Trabajo previo y componentes
+
+Aquí se declaran las librerías, servicios, datos, modelos y otros recursos que usa el proyecto.
 
 ## Librerías de la aplicación
 
 | Paquete | Versión | Uso |
 |---|---|---|
-| `@anthropic-ai/sdk` | 1.14.0 | Cliente de la API de Claude (asesor y auditor) |
+| `@anthropic-ai/sdk` | 1.14.0 | Cliente de la API de Claude (Clipo, revisión de documentos y auditor) |
 | `@supabase/supabase-js` | 2.119.2 | Cliente de Supabase |
 | `clsx` | 2.1.1 | Composición de clases CSS |
 | `lucide-react` | 1.82.0 | Iconos |
@@ -35,12 +37,50 @@ Gestor de paquetes: `pnpm@10.33.0` · Node.js `>=22`. Las dependencias indirecta
 
 | Servicio | Uso | Estado en el repositorio |
 |---|---|---|
-| API de Anthropic (Claude) | Asesor virtual y auditor de procesos | Código integrado; se activa con `ANTHROPIC_API_KEY` |
-| Supabase | Base de datos | Código, migración y semilla incluidos; se activa con `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` |
-| n8n | Automatización de procesos | Webhooks y contratos incluidos; todavía no hay workflows exportados |
+| API de Anthropic (Claude) | Asistente Clipo (texto y voz), revisión de documentos y auditor de procesos | Integrada; se activa con `ANTHROPIC_API_KEY` |
+| Supabase | Base de datos y almacenamiento privado de documentos | Código, migraciones y datos de carga incluidos; se activa con `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` |
+| n8n | Avisos a las familias | Flujo exportado en `n8n/workflows/codigo-seguimiento.json` |
+| Gmail | Envío de los correos desde n8n | Nodo activo; la cuenta se conecta en n8n |
+| SMTP | Alternativa para enviar correos | Nodo incluido, desactivado |
+| WhatsApp Cloud API (Meta) | Avisos por WhatsApp | Nodo incluido, desactivado |
+| Web Speech API del navegador | Reconocimiento y voces de Clipo en el modo voz | Son las del navegador; no usamos un servicio de voz propio |
+
+## Automatización con n8n
+
+El equipo armó este flujo en n8n:
+
+1. **Evento de la app** (Webhook): recibe el aviso.
+2. **¿Es un aviso para la familia?** (IF): deja pasar el código de seguimiento, la matrícula creada y el recordatorio de pago.
+3. **Armar mensaje** (Code): prepara el texto.
+4. **Enviar correo (Gmail).** El nodo SMTP queda como alternativa, desactivado.
+5. **¿Tiene teléfono?** y **Enviar WhatsApp (Cloud API)**, este último desactivado ya que es una propuesta futura
+## Modelos de machine learning
+
+ **Para el entrenamiento solo se usaron los datos sintéticos** del dataset ficticio; ningún dato de otra fuente.
+
+| Librería (Python) | Uso |
+|---|---|
+| scikit-learn (1.6.1 en los modelos de cobranza) | Regresión logística, árbol de decisión y random forest |
+| pandas y NumPy | Preparación de datos |
+| joblib | Guardar y cargar los modelos |
+
+Las versiones de pandas, NumPy y joblib no están fijadas en el repositorio.
+
+- Modelos de cobranza: `Modelos/*.joblib` (también en `Modelos/modelos_clasificacion.zip`). Está el script de exportación `Modelos/exportar_modelos.py`, pero no el de entrenamiento.
+- Modelos de familias nuevas: `Modelos/nuevo_cliente/`, entrenados con `Modelos/entrenar_nuevo_cliente.py`.
+- La app usa los modelos exportados a JSON y los calcula en TypeScript (`src/ml/`).
+
+## Datos
+
+- `dataset-ficticio-colegio/`: dataset ficticio del Hackathon EduTech 2026 (CC0).
+- `scripts/generar_solicitudes_demo.py` y `supabase/seed/demo_solicitudes.sql`: datos de demostración inventados por el equipo para el panel (no se usan para entrenar los modelos).
+
+## Diseño e imágenes
+
+- `design-system/eight-academy/`: guía visual y colores de partida (usa el nombre anterior del proyecto). `MASTER.md` indica en su encabezado que fue generado automáticamente el 2026-11-27.
+- `public/brand/` y los iconos de `src/app/`: imágenes de la marca ficticia Nodo y de su asistente Clipo.
 
 ## Fuentes e iconos
 
 - Google Fonts, cargadas con `next/font/google`: Inter, Space Grotesk y Atkinson Hyperlegible.
 - Iconos de `lucide-react`.
-node -v
