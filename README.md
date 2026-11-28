@@ -28,3 +28,49 @@ flowchart LR
 - **Supabase:** base de datos.
 - **LLM:** chatbot por texto o voz y redacción de avisos.
 - **n8n:** automatización del proceso de matrícula y de los recordatorios de pago.
+## Cómo correr
+
+Requisitos: Node 22+ y pnpm 10.
+
+```bash
+pnpm install
+pnpm dev          # http://localhost:3000
+```
+
+Funciona **sin ninguna variable de entorno**: usa datos simulados en memoria (se reinician al reiniciar el servidor) y un asesor IA simulado. Copia `.env.example` a `.env.local` para activar servicios reales:
+
+| Variable | Efecto |
+|---|---|
+| `ANTHROPIC_API_KEY` | El asesor y el auditor usan Claude (`ANTHROPIC_MODEL`, por defecto `claude-opus-5-5`). |
+| `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` | Los datos se leen y escriben en Supabase. Aplica `supabase/migrations/` (y opcionalmente `supabase/seed.sql`). |
+| `ADMIN_PASSCODE` + `SESSION_SECRET` | Acceso al panel. En desarrollo, sin ellas se usa `admin-demo`. **En producción son obligatorias** (≥16 y ≥32 caracteres); si faltan, el panel queda cerrado. |
+| `N8N_WEBHOOK_SECRET`, `N8N_OUTBOUND_WEBHOOK_URL` | Integración con n8n (ver `n8n/README.md`). Sin `N8N_WEBHOOK_SECRET` el webhook responde 401 en todos los entornos. |
+
+### Datos de demostración (modo simulado)
+
+- Estado de solicitud (`/estado`): código `ADM-2026-0001`, cédula del representante `0912345678`.
+- Pagos (`/pagos`): estudiante `0910000000` o `MAT-2026-0001`, cédula del representante `0912345678`.
+- Panel (`/admin`): clave `admin-demo` (solo con `pnpm dev`; en `pnpm start` define `ADMIN_PASSCODE` y `SESSION_SECRET`).
+- Las solicitudes nuevas reciben un código aleatorio, p. ej. `ADM-2026-K7P2QX`.
+
+### Scripts
+
+`pnpm dev` · `pnpm build` · `pnpm start` · `pnpm lint` · `pnpm typecheck`
+
+## Estructura
+
+```
+src/
+  app/(public)/      landing, admisión, estado, pagos, asesor IA
+  app/admin/         login + panel (dashboard, solicitudes, matrículas, pagos, auditoría)
+  app/api/           chat (streaming), solicitudes, consultas, admin, webhook n8n, health
+  ai/                proveedor Claude / simulado, prompts, auditor (reglas + IA)
+  content/institution.ts   contexto institucional editable (ficticio por ahora)
+  data/              repositorio: simulado en memoria o Supabase
+  components/        UI glass, accesibilidad, gráficos, chat, formularios
+design-system/       dirección visual (DIRECTION.md) y tokens
+supabase/            migraciones SQL y semilla
+n8n/                 contratos de webhooks
+```
+
+Más detalle en `docs/ARCHITECTURE.md`.

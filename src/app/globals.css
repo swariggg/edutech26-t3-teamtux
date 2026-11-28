@@ -1,0 +1,296 @@
+@import "tailwindcss";
+
+/* Dark variant controlado por data-theme en <html> */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* ===== Tokens semánticos (design-system/eight-academy/DIRECTION.md) ===== */
+:root {
+  color-scheme: light;
+  --bg: #eaf0f4;
+  --bg-aurora-1: #b9dce6;
+  --bg-aurora-2: #cfe3d8;
+  --fg: #0f1e2e;
+  --fg-muted: #4a5b6c;
+  --primary: #0e6e8c;
+  --on-primary: #ffffff;
+  --accent: #2f9e83;
+  --success: #1f7a55;
+  --warning: #9a5b00;
+  --danger: #b42318;
+  --info: #0e6e8c;
+  --ring: #0e6e8c;
+  --surface-solid: #f6f8fa;
+  --border-subtle: rgb(15 30 46 / 0.12);
+
+  --glass-bg: rgb(255 255 255 / 0.55);
+  --glass-bg-strong: rgb(255 255 255 / 0.78);
+  --glass-border: rgb(255 255 255 / 0.65);
+  --glass-highlight: linear-gradient(180deg, rgb(255 255 255 / 0.7), rgb(255 255 255 / 0) 42%);
+  --glass-blur: 18px;
+  --glass-saturate: 160%;
+  --glass-shadow: 0 8px 32px rgb(15 30 46 / 0.1);
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur: 200ms;
+  --text-scale: 1;
+
+  --chart-1: var(--primary);
+  --chart-2: var(--accent);
+  --chart-3: var(--success);
+  --chart-4: var(--warning);
+  --chart-5: var(--danger);
+
+  --font-heading: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b1420;
+  --bg-aurora-1: #123a4a;
+  --bg-aurora-2: #14322b;
+  --fg: #e3eaf1;
+  --fg-muted: #9aabbd;
+  --primary: #5cc8e6;
+  --on-primary: #06202b;
+  --accent: #6ee7c5;
+  --success: #5fd3a0;
+  --warning: #f2b75b;
+  --danger: #f28b82;
+  --info: #5cc8e6;
+  --ring: #7fd6ee;
+  --surface-solid: #101b2a;
+  --border-subtle: rgb(148 180 210 / 0.16);
+
+  --glass-bg: rgb(20 32 48 / 0.55);
+  --glass-bg-strong: rgb(20 32 48 / 0.82);
+  --glass-border: rgb(148 180 210 / 0.18);
+  --glass-highlight: linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0) 42%);
+  --glass-shadow: 0 8px 32px rgb(0 0 0 / 0.35);
+}
+
+/* Alto contraste: superficies sólidas, texto 7:1, bordes marcados */
+[data-contrast="high"] {
+  --fg: #000000;
+  --fg-muted: #1f2a36;
+  --primary: #004a63;
+  --accent: #0e5240;
+  --success: #14583c;
+  --warning: #6b3f00;
+  --danger: #8a1a10;
+  --info: #004a63;
+  --ring: #000000;
+  --border-subtle: #000000;
+  --glass-border: #000000;
+}
+[data-theme="dark"][data-contrast="high"] {
+  --fg: #ffffff;
+  --fg-muted: #dbe5ee;
+  --primary: #9fe3f5;
+  --on-primary: #00141c;
+  --accent: #a6f5de;
+  --success: #8ff0c4;
+  --warning: #ffd591;
+  --danger: #ffb4ab;
+  --info: #9fe3f5;
+  --ring: #ffffff;
+  --border-subtle: #ffffff;
+  --glass-border: #ffffff;
+}
+
+/* Transparencia reducida (preferencia del sistema o del usuario) / alto contraste => superficies sólidas */
+@media (prefers-reduced-transparency: reduce) {
+  :root, [data-theme="dark"] {
+    --glass-bg: var(--surface-solid);
+    --glass-bg-strong: var(--surface-solid);
+    --glass-blur: 0px;
+    --glass-saturate: 100%;
+  }
+  .aurora span { display: none; }
+  .glass { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  dialog::backdrop { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: rgb(0 0 0 / 0.6) !important; }
+}
+[data-transparency="reduce"],
+[data-contrast="high"] {
+  --glass-bg: var(--surface-solid);
+  --glass-bg-strong: var(--surface-solid);
+  --glass-blur: 0px;
+  --glass-saturate: 100%;
+}
+[data-transparency="reduce"] .glass,
+[data-contrast="high"] .glass { -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-transparency="reduce"] dialog::backdrop,
+[data-contrast="high"] dialog::backdrop {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: rgb(0 0 0 / 0.6) !important;
+}
+
+/* Fuente de lectura fácil */
+[data-font="dyslexic"] {
+  --font-heading: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+  --font-body: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
+}
+[data-font="dyslexic"] body {
+  letter-spacing: 0.02em;
+  word-spacing: 0.06em;
+  line-height: 1.7;
+}
+
+/* ===== Mapeo a utilidades Tailwind ===== */
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-muted: var(--fg-muted);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
+  --color-ring: var(--ring);
+  --color-surface: var(--surface-solid);
+  --color-line: var(--border-subtle);
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-heading);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+}
+
+/* ===== Base (en @layer base para que las utilidades de Tailwind la sobrescriban) ===== */
+@layer base {
+  html {
+    font-size: calc(100% * var(--text-scale));
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-body);
+    line-height: 1.6;
+    min-height: 100dvh;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 {
+    font-family: var(--font-heading);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+  [data-contrast="high"] a:not([data-button]) { text-decoration: underline; }
+  td { font-variant-numeric: tabular-nums; }
+  :focus-visible {
+    outline: 3px solid var(--ring);
+    outline-offset: 2px;
+  }
+  button, [role="button"], a, summary, select, input[type="checkbox"], input[type="radio"], label[for] { cursor: pointer; }
+  button:disabled, [aria-disabled="true"] { cursor: not-allowed; }
+}
+
+/* ===== Superficies glass ===== */
+@utility glass {
+  position: relative;
+  isolation: isolate;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--glass-highlight);
+    pointer-events: none;
+    z-index: -1;
+  }
+}
+@utility glass-strong {
+  background: var(--glass-bg-strong);
+}
+@utility glass-inset {
+  background: color-mix(in srgb, var(--fg) 4%, transparent);
+  border: 1px solid var(--border-subtle);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root, [data-theme="dark"] {
+    --glass-bg: var(--surface-solid);
+    --glass-bg-strong: var(--surface-solid);
+  }
+}
+/* Los <dialog> modales viven en la top layer: deben ser fixed aunque usen .glass (que fija position:relative). */
+dialog.glass:modal { position: fixed; }
+[data-contrast="high"] .glass { border-width: 2px; box-shadow: none; }
+[data-contrast="high"] .glass::before,
+[data-transparency="reduce"] .glass::before { display: none; }
+
+/* ===== Fondo aurora ===== */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--bg);
+}
+.aurora span {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  opacity: 0.75;
+  will-change: transform;
+  animation: aurora-drift 28s var(--ease-out) infinite alternate;
+}
+.aurora span:nth-child(1) { width: 52vmax; height: 52vmax; left: -14vmax; top: -18vmax; background: var(--bg-aurora-1); }
+.aurora span:nth-child(2) { width: 46vmax; height: 46vmax; right: -16vmax; top: 18vh; background: var(--bg-aurora-2); animation-duration: 34s; animation-delay: -8s; }
+.aurora span:nth-child(3) { width: 30vmax; height: 30vmax; left: 30vw; bottom: -16vmax; background: var(--bg-aurora-1); opacity: 0.45; animation-duration: 40s; animation-delay: -14s; }
+@keyframes aurora-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(4vmax, 3vmax, 0) scale(1.08); }
+}
+[data-transparency="reduce"] .aurora span,
+[data-contrast="high"] .aurora span { display: none; }
+
+/* Indicador de escritura */
+.typing-dot { animation: typing 1.2s infinite ease-in-out; }
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes typing {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* ===== Movimiento reducido ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+[data-motion="reduce"] *, [data-motion="reduce"] *::before, [data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ===== Colores forzados (Windows alto contraste) ===== */
+@media (forced-colors: active) {
+  .glass { border: 1px solid CanvasText; background: Canvas; }
+  .aurora { display: none; }
+}
+
+/* Utilidad sr-only ya incluida en Tailwind; detalles nativos */
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
